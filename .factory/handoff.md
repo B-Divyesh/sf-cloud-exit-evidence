@@ -1,25 +1,36 @@
-# Cloud Exit Evidence — review 2 handoff
+# Cloud Exit Evidence — polish 2 handoff
 
-Reviewer-only work completed at commit `1705a864cea7599c7da41905a5c8230394019acd`. No product code was changed.
+Repair commit: `05bb256fc3c81f51682ff6bb5775e8445b54f3df`.
 
 ## Done
 
-- Wrote `.factory/review-2.md`, a full adversarial first-read review of the live site and README.
-- Used fresh 390px and desktop production contexts, verified direct demo isolation, live offline reload, link crawl, metadata/404, and route focus.
-- Made a clean clone at `/tmp/cloud-exit-evidence-review2.BRdLUJ`, ran `npm ci`, `npm test`, `npm run build`, and all 13 claim commands individually.
-- Ran `cloud-exit-evidence demo` from a new temporary working directory.
+- Closed every finding in `.factory/review-1.md` and `.factory/review-2.md`; the precise mapping is in `.factory/polish-2.md`.
+- The `/demo/` report now leads on phones, shows two real missing paths and one real open exclusion in the 390×844 viewport, and remains isolated under `demo:cloud-exit-evidence`.
+- Browser, CLI fixture, example documentation, landing preview, and self-hosted SVG terminal evidence now describe the same sample.
+- Added production-safe same-origin navigation focus, expanded claim inventory/tests, simplified untestable implementation wording, refreshed copy audit/catalog text, and retained the evidence-broadsheet visual system.
+- Deployed `dist/site/` with `/opt/fleet/lib/deploy-static.sh cloud-exit-evidence dist/site`: deployment `9a76f0f0-6f26-4dcb-ac38-6a996addf87d`.
 
-## Result
+## Verification
 
-The review verdict is **FAIL**. Blocking issues are: the phone demo result is below the initial viewport, the landing CLI recording contradicts the shipped sample command, and live forward route navigation does not focus the destination heading under production's `no-referrer` policy. Major unlisted/under-tested claims and copy issues are detailed in `.factory/review-2.md`.
+- `npm test` — pass: Rust fmt, clippy, unit/integration tests, site unit tests, static response policy, Playwright desktop/mobile route/a11y/privacy/offline tests.
+- `npm run build` — pass; `dist/site/` produced. Initial site JS is 7.39 kB gzip and CSS is 3.61 kB gzip.
+- `npm run test:claims -- --grep @claim:` — pass; all 18 claim entries run their tagged observable test.
+- `cargo package -p cloud-exit-evidence --locked --allow-dirty` — ready-to-publish package check.
+- Browser axe checks in `tests/browser/site.spec.ts` report no serious or critical findings for every route.
+- Evidence: `.factory/evidence/demo-first-screen-390.png` (local) and `.factory/evidence/live-polish-2-demo-mobile.png` (cold live site).
+- Cold live recheck passed at `https://cloud-exit-evidence.sociobot.in/`: home/title, one-click demo, `?demo=1`, 390px first-screen report, banner/reset sandbox, forward heading focus under `no-referrer`, legal routes, product 404, and no console errors.
 
-## Verify
+## Run and deploy
 
 ```sh
 npm ci
 npm test
 npm run build
-npm run test:claims -- --grep @claim:<id>
+npm run test:claims -- --grep @claim:
+cargo package -p cloud-exit-evidence --locked --allow-dirty
+/opt/fleet/lib/deploy-static.sh cloud-exit-evidence dist/site
 ```
 
-Use the review's live Playwright observations to retest the 390px first demo screen and forward focus after any repair.
+## Known gaps
+
+None. No AI feature was added because the brief’s local deterministic comparison job does not benefit from one.
