@@ -1,1 +1,1 @@
-Check an offline cloud copy for missing, old, changed, or excluded files.
+Check offline cloud copies for missing, old, changed, or excluded files.

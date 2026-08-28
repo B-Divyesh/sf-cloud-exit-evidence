@@ -1,12 +1,23 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync, mkdirSync, symlinkSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const binary = join(process.cwd(), 'target', 'release', 'cloud-exit-evidence');
+const sampleHash = '3a6eb0790f39ac87c94f3856b2dd2c5d110e6811602261a9a923d3bb23adc8b7';
+
+function runCli(args: string[], options: { cwd?: string; env?: NodeJS.ProcessEnv } = {}) {
+  const result = spawnSync(binary, args, { encoding: 'utf8', cwd: options.cwd, env: options.env ?? process.env });
+  expect(result.error).toBeUndefined();
+  return { status: result.status, stdout: String(result.stdout ?? ''), stderr: String(result.stderr ?? '') };
+}
+
+function expectStatus(result: ReturnType<typeof runCli>, expected: number) {
+  expect(result.status, `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`).toBe(expected);
+}
 
 for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
   test(`${path} has semantic structure, metadata, and no serious accessibility violations`, async ({ page }) => {
@@ -56,17 +67,30 @@ test('the documented ?demo=1 shortcut enters the isolated demo route', async ({ 
   await expect(page.getByText('Demo — sample data, nothing is saved.')).toBeVisible();
 });
 
-test('@claim:demo-isolation demo reset only clears its own namespaced state', async ({ page }) => {
+test('@claim:demo-isolation demo entry, reset, and exit preserve real state and discard only demo state', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('real:cloud-exit-evidence', 'keep'));
   await page.goto('/demo/');
-  await page.evaluate(() => localStorage.setItem('real:cloud-exit-evidence', 'keep'));
+  expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })))
+    .toEqual({ demo: 'sample', real: 'keep' });
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await expect(page.getByRole('heading', { name: 'Not ready' })).toBeVisible();
-  const state = await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') }));
-  expect(state).toEqual({ demo: 'sample', real: 'keep' });
+  expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })))
+    .toEqual({ demo: 'sample', real: 'keep' });
   await page.getByRole('link', { name: 'Start for real' }).click();
   await expect(page).toHaveURL(/\/$/);
-  expect(await page.evaluate(() => localStorage.getItem('demo:cloud-exit-evidence'))).toBeNull();
-  expect(await page.evaluate(() => localStorage.getItem('real:cloud-exit-evidence'))).toBe('keep');
+  expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })))
+    .toEqual({ demo: null, real: 'keep' });
+});
+
+test('@claim:free-to-use the site and command-line tool are free under MIT without a purchase path', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByText('Free under MIT')).toBeVisible();
+  await page.goto('/terms/');
+  await expect(page.getByText('The software and website are free under the MIT License.')).toBeVisible();
+  expect(readFileSync(join(process.cwd(), 'LICENSE'), 'utf8')).toMatch(/Permission is hereby granted/);
+  const source = ['site/index.html', 'site/demo/index.html', 'site/privacy/index.html', 'site/terms/index.html', 'site/404.html']
+    .map((path) => readFileSync(join(process.cwd(), path), 'utf8')).join('\n');
+  expect(source).not.toMatch(/(?:checkout|purchase|paywall|billing|subscribe)/i);
 });
 
 test('@claim:browser-local browser demo does not upload data or call third parties', async ({ page }) => {
@@ -95,12 +119,17 @@ test('@claim:offline-reload service worker reloads the sample while offline', as
   await context.setOffline(false);
 });
 
-test('@claim:routing-focus forward and back route navigation focus and announce the page heading with no-referrer', async ({ page }) => {
+test('@claim:routing-focus forward and back route navigation focus and quietly announce the page heading', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: 'Demo', exact: true }).click();
   await expect(page).toHaveURL(/\/demo\/$/);
   await expect(page.getByRole('heading', { name: 'Check a sample offline copy.' })).toBeFocused();
-  await expect(page.locator('.route-announcement')).toHaveText('Demo — Cloud Exit Evidence');
+  const announcement = page.locator('.route-announcement');
+  await expect(announcement).toHaveText('Demo — Cloud Exit Evidence');
+  await expect(announcement).toHaveClass(/sr-only/);
+  const announcementBox = await announcement.boundingBox();
+  expect(announcementBox?.width).toBeLessThanOrEqual(1);
+  expect(announcementBox?.height).toBeLessThanOrEqual(1);
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Check your offline cloud copy.' })).toBeFocused();
   await page.getByRole('link', { name: 'Try it with sample data' }).click();
@@ -117,12 +146,39 @@ test('keyboard reaches the skip link and every first-screen action at mobile wid
   await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
 });
 
-test('@claim:cli-demo CLI demo, shipped fixture, and landing recording report the same sample gaps', async ({ page }) => {
-  const result = execFileSync(binary, ['demo'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-  expect(result).toContain('NOT READY');
-  expect(result).toContain('Photos/2026/birthday.webp');
-  expect(result).toContain('Documents/tax-return.pdf');
-  expect(result).toContain('Phone/Documents/**');
+test('mobile interactive targets are at least 44 by 44 pixels', async ({ page }) => {
+  test.skip(page.viewportSize()?.width !== 390, 'This check measures the required 390 px phone viewport.');
+  for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
+    await page.goto(path);
+    const boxes = await page.locator('a:visible, button:visible').evaluateAll((elements) => elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { name: element.getAttribute('aria-label') || element.textContent?.trim() || element.tagName, width: box.width, height: box.height };
+    }));
+    expect(boxes.length).toBeGreaterThan(0);
+    for (const box of boxes) {
+      expect(box.width, `${path}: ${box.name} is too narrow`).toBeGreaterThanOrEqual(44);
+      expect(box.height, `${path}: ${box.name} is too short`).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
+test('@claim:cli-demo CLI demo seeds the bundled sample in a temporary folder and matches its landing recording', async ({ page }) => {
+  const result = runCli(['demo']);
+  expectStatus(result, 0);
+  expect(result.stdout).toContain('NOT READY');
+  expect(result.stdout).toContain('Photos/2026/birthday.webp');
+  expect(result.stdout).toContain('Documents/tax-return.pdf');
+  expect(result.stdout).toContain('Phone/Documents/**');
+  const directory = result.stderr.match(/Demo files written to (.+)/)?.[1].trim();
+  expect(directory).toBeTruthy();
+  try {
+    expect(existsSync(directory!)).toBe(true);
+    expect(readdirSync(directory!).sort()).toEqual(['offline-copy', 'sample-manifest.json']);
+    expect(readFileSync(join(directory!, 'sample-manifest.json'), 'utf8')).toContain('Photos/2026/birthday.webp');
+    expect(readFileSync(join(directory!, 'offline-copy', 'Documents', 'lease.pdf'), 'utf8')).toBe('sample lease evidence\n');
+  } finally {
+    if (directory) rmSync(directory, { recursive: true, force: true });
+  }
   expect(readFileSync(join(process.cwd(), 'examples', 'intentional-gaps', 'README.md'), 'utf8')).toContain('missing photo and tax return');
   await page.goto('/');
   await expect(page.locator('.terminal-recording')).toContainText('Photos/2026/birthday.webp');
@@ -130,12 +186,23 @@ test('@claim:cli-demo CLI demo, shipped fixture, and landing recording report th
   await expect(page.locator('.terminal-recording')).toContainText('Phone/Documents/**');
 });
 
-test('@claim:cli-no-network CLI contains no network client code or network client dependency', () => {
+test('@claim:cli-no-network command-line runs use no network client and leave no usage data in an empty working directory', () => {
   const source = readdirSync(join(process.cwd(), 'crates', 'cloud-exit-evidence', 'src'))
     .map((name) => readFileSync(join(process.cwd(), 'crates', 'cloud-exit-evidence', 'src', name), 'utf8')).join('\n');
   const dependencies = readFileSync(join(process.cwd(), 'crates', 'cloud-exit-evidence', 'Cargo.toml'), 'utf8');
   expect(source).not.toMatch(/std::net|TcpStream|UdpSocket|reqwest|ureq|https?:\/\//i);
   expect(dependencies).not.toMatch(/reqwest|ureq|hyper|curl|tokio/i);
+  const directory = mkdtempSync(join(tmpdir(), 'cee-no-network-'));
+  try {
+    const workspace = join(directory, 'empty-working-directory');
+    const destination = join(directory, 'offline');
+    const manifest = join(directory, 'manifest.json');
+    mkdirSync(workspace); mkdirSync(destination);
+    writeFileSync(join(destination, 'present.txt'), 'data');
+    writeFileSync(manifest, '{"files":[{"path":"present.txt","size":4}]}');
+    expectStatus(runCli(['audit', '--manifest', manifest, '--destination', destination, '--format', 'json'], { cwd: workspace }), 0);
+    expect(readdirSync(workspace)).toEqual([]);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
 test('@claim:cli-read-only normal CLI checks leave the manifest and selected folder unchanged', () => {
@@ -147,7 +214,7 @@ test('@claim:cli-read-only normal CLI checks leave the manifest and selected fol
     writeFileSync(join(destination, 'present.txt'), 'data');
     writeFileSync(manifest, '{"files":[{"path":"present.txt","size":4}]}');
     const before = createHash('sha256').update(readFileSync(manifest)).update(readFileSync(join(destination, 'present.txt'))).digest('hex');
-    execFileSync(binary, ['audit', '--manifest', manifest, '--destination', destination, '--format', 'json'], { encoding: 'utf8' });
+    expectStatus(runCli(['audit', '--manifest', manifest, '--destination', destination, '--format', 'json']), 0);
     const after = createHash('sha256').update(readFileSync(manifest)).update(readFileSync(join(destination, 'present.txt'))).digest('hex');
     expect(after).toBe(before);
     expect(readdirSync(directory).sort()).toEqual(['manifest.json', 'offline']);
@@ -155,47 +222,73 @@ test('@claim:cli-read-only normal CLI checks leave the manifest and selected fol
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-test('@claim:cli-formats-readiness CLI reads JSON, CSV, and rclone lists and signals missing, stale, size, and hash gaps', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'cee-claim-'));
+test('@claim:cli-formats-readiness command-line checks read full JSON, CSV, and rclone file lists and report every documented gap', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-formats-'));
   try {
     const destination = join(directory, 'offline');
     mkdirSync(destination);
     writeFileSync(join(destination, 'present.txt'), 'data');
-    const cases = [
-      ['native.json', '{"files":[{"path":"present.txt","size":4},{"path":"missing.txt","size":1}]}'],
-      ['files.csv', 'path,size\npresent.txt,4\nmissing.txt,1\n'],
-      ['rclone.json', '[{"Path":"present.txt","Size":4},{"Path":"missing.txt","Size":1}]']
-    ];
-    for (const [name, contents] of cases) {
+    const native = join(directory, 'native.json');
+    const csv = join(directory, 'files.csv');
+    const rclone = join(directory, 'rclone.json');
+    writeFileSync(native, `{"files":[{"path":"present.txt","size":4,"modified":"2020-01-01T00:00:00Z","sha256":"${sampleHash}"}]}`);
+    writeFileSync(csv, `path,size,modified,sha256,excluded,exclusion_reason\npresent.txt,4,2020-01-01T00:00:00Z,${sampleHash},false,\nPhone/Documents/**,,,,true,permission denied\n`);
+    writeFileSync(rclone, `[{"Path":"present.txt","Size":4,"ModTime":"2020-01-01T00:00:00Z","Hashes":{"SHA-256":"${sampleHash}"},"IsDir":false},{"Path":"ignored","IsDir":true}]`);
+    const nativeReport = runCli(['audit', '--manifest', native, '--destination', destination, '--format', 'json']);
+    expectStatus(nativeReport, 0);
+    expect(JSON.parse(nativeReport.stdout).files[0].state).toBe('verified');
+    const csvReport = runCli(['audit', '--manifest', csv, '--destination', destination, '--format', 'json']);
+    expectStatus(csvReport, 2);
+    const parsedCsv = JSON.parse(csvReport.stdout);
+    expect(parsedCsv.files[0].state).toBe('verified');
+    expect(parsedCsv.exclusions).toMatchObject([{ path: 'Phone/Documents/**', reason: 'permission denied', acknowledged: false }]);
+    const rcloneReport = runCli(['audit', '--manifest', rclone, '--destination', destination, '--format', 'json']);
+    expectStatus(rcloneReport, 0);
+    expect(JSON.parse(rcloneReport.stdout).files).toHaveLength(1);
+    expect(JSON.parse(rcloneReport.stdout).files[0].state).toBe('verified');
+    for (const [name, contents, summary] of [
+      ['missing.json', '{"files":[{"path":"missing.txt","size":1}]}', 'missing'],
+      ['stale.json', '{"files":[{"path":"present.txt","size":4,"modified":"2099-01-01T00:00:00Z"}]}', 'stale'],
+      ['size.json', '{"files":[{"path":"present.txt","size":5}]}', 'size_mismatch'],
+      ['hash.json', '{"files":[{"path":"present.txt","size":4,"sha256":"0000000000000000000000000000000000000000000000000000000000000000"}]}', 'hash_mismatch']
+    ]) {
       const manifest = join(directory, name);
       writeFileSync(manifest, contents);
-      try { execFileSync(binary, ['audit', '--manifest', manifest, '--destination', destination, '--format', 'json'], { encoding: 'utf8' }); }
-      catch (error) {
-        const output = (error as { stdout: Buffer }).stdout.toString();
-        expect(output).toContain('"missing": 1');
-      }
-    }
-    for (const [name, file] of [
-      ['size.json', '{"path":"present.txt","size":5}'],
-      ['stale.json', '{"path":"present.txt","size":4,"modified":"2099-01-01T00:00:00Z"}'],
-      ['hash.json', '{"path":"present.txt","size":4,"sha256":"0000000000000000000000000000000000000000000000000000000000000000"}']
-    ]) {
-      const detailed = join(directory, name);
-      writeFileSync(detailed, `{"files":[${file}]}`);
-      try { execFileSync(binary, ['audit', '--manifest', detailed, '--destination', destination, '--format', 'json'], { encoding: 'utf8' }); }
-      catch (error) { expect((error as { stdout: Buffer }).stdout.toString()).toMatch(/"(size_mismatch|stale|hash_mismatch)": 1/); }
+      const result = runCli(['audit', '--manifest', manifest, '--destination', destination, '--format', 'json']);
+      expectStatus(result, 2);
+      expect(JSON.parse(result.stdout).summary[summary]).toBe(1);
     }
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-test('@claim:cli-acknowledgement acknowledged checked exclusions produce a ready-with-exceptions report', () => {
+test('@claim:duplicate-paths command-line checks reject duplicate JSON, CSV, and rclone file-list paths', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-duplicates-'));
+  try {
+    const destination = join(directory, 'offline'); mkdirSync(destination);
+    const cases = [
+      ['native.json', '{"files":[{"path":"same.txt"},{"path":"same.txt"}]}'],
+      ['files.csv', 'path,size\nsame.txt,1\nsame.txt,1\n'],
+      ['rclone.json', '[{"Path":"same.txt","Size":1},{"Path":"same.txt","Size":1}]']
+    ];
+    for (const [name, contents] of cases) {
+      const manifest = join(directory, name);
+      writeFileSync(manifest, contents);
+      const result = runCli(['audit', '--manifest', manifest, '--destination', destination]);
+      expectStatus(result, 3);
+      expect(result.stderr).toContain('duplicate path: same.txt');
+    }
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('@claim:cli-acknowledgement acknowledged checked exclusions produce a recorded ready-with-exceptions report', () => {
   const directory = mkdtempSync(join(tmpdir(), 'cee-acknowledgement-'));
   try {
     const manifest = join(directory, 'manifest.json'); const destination = join(directory, 'offline');
     mkdirSync(destination); writeFileSync(join(destination, 'present.txt'), 'data');
     writeFileSync(manifest, '{"files":[{"path":"present.txt","size":4}],"exclusions":[{"path":"Phone/Documents/**","reason":"permission denied"}]}');
-    const output = execFileSync(binary, ['audit', '--manifest', manifest, '--destination', destination, '--format', 'json', '--acknowledge', 'Phone/Documents/**', '--acknowledgement-note', 'checked separate export'], { encoding: 'utf8' });
-    expect(JSON.parse(output).readiness).toBe('ready_with_exceptions');
+    const result = runCli(['audit', '--manifest', manifest, '--destination', destination, '--format', 'json', '--acknowledge', 'Phone/Documents/**', '--acknowledgement-note', 'checked separate export']);
+    expectStatus(result, 0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ readiness: 'ready_with_exceptions', exclusions: [{ path: 'Phone/Documents/**', reason: 'permission denied', acknowledged: true, acknowledgement_note: 'checked separate export' }] });
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
@@ -207,54 +300,89 @@ test('@claim:cli-exit-codes passing, gap, and invalid checks exit with 0, 2, and
     writeFileSync(ready, '{"files":[{"path":"present.txt","size":4}]}');
     writeFileSync(gap, '{"files":[{"path":"missing.txt","size":1}]}');
     writeFileSync(invalid, '{not valid json');
-    expect(execFileSync(binary, ['audit', '--manifest', ready, '--destination', destination]).toString()).toContain('READY');
-    for (const [manifest, expectedStatus] of [[gap, 2], [invalid, 3]] as const) {
-      try { execFileSync(binary, ['audit', '--manifest', manifest, '--destination', destination]); }
-      catch (error) { expect((error as { status: number }).status).toBe(expectedStatus); continue; }
-      throw new Error(`Expected ${manifest} to exit ${expectedStatus}`);
-    }
+    expectStatus(runCli(['audit', '--manifest', ready, '--destination', destination]), 0);
+    expectStatus(runCli(['audit', '--manifest', gap, '--destination', destination]), 2);
+    expectStatus(runCli(['audit', '--manifest', invalid, '--destination', destination]), 3);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-test('@claim:cli-redaction CLI redacts file paths in printed reports', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'cee-claim-'));
+test('@claim:cli-redaction command-line checks redact two distinct file paths with stable labels', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-redaction-'));
   try {
     const manifest = join(directory, 'manifest.json');
     const destination = join(directory, 'offline');
     mkdirSync(destination);
-    writeFileSync(manifest, '{"files":[{"path":"private/tax-return.pdf","size":1}]}');
-    try { execFileSync(binary, ['audit', '--manifest', manifest, '--destination', destination, '--redact-paths'], { encoding: 'utf8' }); }
-    catch (error) {
-      const output = (error as { stdout: Buffer }).stdout.toString();
+    writeFileSync(manifest, '{"files":[{"path":"private/tax-return.pdf","size":1},{"path":"private/medical-note.pdf","size":1}]}');
+    const first = runCli(['audit', '--manifest', manifest, '--destination', destination, '--redact-paths']);
+    const second = runCli(['audit', '--manifest', manifest, '--destination', destination, '--redact-paths']);
+    expectStatus(first, 2); expectStatus(second, 2);
+    for (const output of [first.stdout, second.stdout]) {
       expect(output).not.toContain('private/tax-return.pdf');
-      expect(output).toContain('path:');
+      expect(output).not.toContain('private/medical-note.pdf');
     }
+    const labels = (output: string) => [...new Set(output.match(/path:[0-9a-f]{12}/g) ?? [])].sort();
+    expect(labels(first.stdout)).toHaveLength(2);
+    expect(labels(second.stdout)).toEqual(labels(first.stdout));
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-test('@claim:cli-validation-and-links CLI rejects unsafe paths and reports links as unsafe', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'cee-claim-'));
+test('@claim:cli-fail-on documented exceptions and never modes return their documented exit codes', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-fail-on-'));
+  try {
+    const destination = join(directory, 'offline'); mkdirSync(destination); writeFileSync(join(destination, 'present.txt'), 'data');
+    const exclusions = join(directory, 'exclusions.json'); const gap = join(directory, 'gap.json');
+    writeFileSync(exclusions, '{"files":[{"path":"present.txt","size":4}],"exclusions":[{"path":"Phone/Documents/**","reason":"permission denied"}]}');
+    writeFileSync(gap, '{"files":[{"path":"missing.txt","size":1}]}');
+    const exceptions = runCli(['audit', '--manifest', exclusions, '--destination', destination, '--acknowledge', 'Phone/Documents/**', '--fail-on', 'exceptions']);
+    expectStatus(exceptions, 2);
+    expect(exceptions.stdout).toContain('READY WITH EXCEPTIONS');
+    const never = runCli(['audit', '--manifest', gap, '--destination', destination, '--fail-on', 'never']);
+    expectStatus(never, 0);
+    expect(never.stdout).toContain('NOT READY');
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('@claim:cli-validation-and-links command-line checks reject escaping paths and report links as unsafe without following them', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-validation-'));
   try {
     const destination = join(directory, 'offline'); mkdirSync(destination);
     const unsafeManifest = join(directory, 'unsafe.json');
     writeFileSync(unsafeManifest, '{"files":[{"path":"../outside.txt"}]}');
-    expect(() => execFileSync(binary, ['audit', '--manifest', unsafeManifest, '--destination', destination])).toThrow();
-    writeFileSync(join(directory, 'outside.txt'), 'data'); symlinkSync(join(directory, 'outside.txt'), join(destination, 'linked.txt'));
-    const linkManifest = join(directory, 'link.json'); writeFileSync(linkManifest, '{"files":[{"path":"linked.txt","size":4}]}');
-    try { execFileSync(binary, ['audit', '--manifest', linkManifest, '--destination', destination, '--format', 'json'], { encoding: 'utf8' }); }
-    catch (error) { expect((error as { stdout: Buffer }).stdout.toString()).toContain('"unsafe_or_unreadable": 2'); }
+    const unsafe = runCli(['audit', '--manifest', unsafeManifest, '--destination', destination]);
+    expectStatus(unsafe, 3);
+    expect(unsafe.stderr).toContain('path escapes the destination');
+    writeFileSync(join(directory, 'outside.txt'), 'data');
+    symlinkSync(join(directory, 'outside.txt'), join(destination, 'linked.txt'));
+    const linkManifest = join(directory, 'link.json');
+    writeFileSync(linkManifest, '{"files":[{"path":"linked.txt","size":4}]}');
+    const link = runCli(['audit', '--manifest', linkManifest, '--destination', destination, '--format', 'json']);
+    expectStatus(link, 2);
+    const report = JSON.parse(link.stdout);
+    expect(report.files).toMatchObject([{ path: 'linked.txt', state: 'unsafe', detail: 'path crosses a symlink' }]);
+    expect(report.unsafe_links).toContain('linked.txt');
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-test('@claim:encrypted-report CLI encrypts a saved report and decrypts it with its passphrase', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'cee-claim-'));
+test('@claim:encrypted-report saved reports are encrypted, terminal output is plain, and only the supplied passphrase decrypts', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-encryption-'));
   try {
     const manifest = join(directory, 'manifest.json'); const destination = join(directory, 'offline'); const report = join(directory, 'report.cee');
     mkdirSync(destination); writeFileSync(join(destination, 'present.txt'), 'data'); writeFileSync(manifest, '{"files":[{"path":"present.txt","size":4}]}');
-    execFileSync(binary, ['audit', '--manifest', manifest, '--destination', destination, '--format', 'json', '--output', report], { env: { ...process.env, CEE_PASSPHRASE: 'integration-secret' } });
+    const environment = { ...process.env, CEE_PASSPHRASE: 'integration-secret' };
+    const saved = runCli(['audit', '--manifest', manifest, '--destination', destination, '--format', 'json', '--output', report], { env: environment });
+    expectStatus(saved, 0);
     expect(readFileSync(report).subarray(0, 4).toString()).toBe('CEE1');
-    const decrypted = execFileSync(binary, ['decrypt', '--input', report], { encoding: 'utf8', env: { ...process.env, CEE_PASSPHRASE: 'integration-secret' } });
-    expect(decrypted).toContain('present.txt');
+    expect(readFileSync(report).toString()).not.toContain('present.txt');
+    const decrypted = runCli(['decrypt', '--input', report], { env: environment });
+    expectStatus(decrypted, 0);
+    expect(decrypted.stdout).toContain('present.txt');
+    expectStatus(runCli(['decrypt', '--input', report], { env: { ...process.env, CEE_PASSPHRASE: 'wrong-passphrase' } }), 3);
+    const plainManifest = join(directory, 'plain-terminal.json');
+    writeFileSync(plainManifest, '{"files":[{"path":"private/present.txt","size":4}]}');
+    const terminal = runCli(['audit', '--manifest', plainManifest, '--destination', destination]);
+    expectStatus(terminal, 2);
+    expect(terminal.stdout).toContain('private/present.txt');
+    expect(terminal.stdout).not.toContain('CEE1');
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 

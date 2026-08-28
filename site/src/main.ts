@@ -134,11 +134,12 @@ function hideError() {
 document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((button) => {
   button.addEventListener('click', async () => {
     const value = button.dataset.copy ?? '';
+    const commandName = button.dataset.copyLabel?.replace(/^Copy /, '') ?? 'command';
     try {
       await navigator.clipboard.writeText(value);
-      button.textContent = 'Copied';
+      button.textContent = `Copied ${commandName}`;
     } catch {
-      button.textContent = 'Select command';
+      button.textContent = `Select ${commandName}`;
       button.previousElementSibling?.setAttribute('tabindex', '-1');
       const selection = window.getSelection();
       const range = document.createRange();
@@ -146,7 +147,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((button) => 
       selection?.removeAllRanges();
       selection?.addRange(range);
     }
-    window.setTimeout(() => (button.textContent = 'Copy'), 1600);
+    window.setTimeout(() => (button.textContent = button.dataset.copyLabel ?? 'Copy command'), 1600);
   });
 });
 

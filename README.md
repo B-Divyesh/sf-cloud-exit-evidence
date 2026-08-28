@@ -67,7 +67,7 @@ cloud-exit-evidence audit \
 cloud-exit-evidence decrypt --input evidence.cee
 ```
 
-Saved reports are encrypted and need the supplied passphrase to decrypt. Plain terminal output remains under your control.
+Saved reports are encrypted and need the supplied passphrase to decrypt. Terminal output is not encrypted. Protect or redirect it yourself.
 
 ## File-list rules
 
@@ -92,17 +92,17 @@ Paths must stay inside the selected folder. Duplicate and escaping paths are rej
 
 - `READY` means every listed file passed and no exclusion is open.
 - `READY WITH EXCEPTIONS` means every file passed and listed exclusions were acknowledged.
-- `NOT READY` means a file is missing, old, changed, unsafe, unreadable, or unacknowledged.
+- `NOT READY` means a file is missing, old, changed, unsafe, or unacknowledged.
 
 A passing check exits 0. A failed readiness check exits 2. Invalid input or file errors exit 3.
 
-The `--fail-on` option chooses the exit rule. Use `--fail-on exceptions` or `--fail-on never` when needed.
+Use `--fail-on exceptions` to fail on acknowledged exclusions. Use `--fail-on never` to return 0 after any valid check.
 
 ## Website and privacy
 
 The site at <https://cloud-exit-evidence.sociobot.in> includes a local sample at [/demo/](https://cloud-exit-evidence.sociobot.in/demo/). The sample opens with a report, uses only `demo:` browser storage, and is removed when you leave it.
 
-The browser sample does not upload file-list text or selected file details. It calls no third-party runtime service. The CLI contains no network client or telemetry.
+The browser sample does not upload file-list text or selected file details. It contacts no third-party service. The command-line tool has no network client and sends no usage data.
 
 ## Develop and verify
 
@@ -113,7 +113,7 @@ npm run build
 cargo package -p cloud-exit-evidence --locked --allow-dirty
 ```
 
-`npm run build` writes the release binary and `dist/site/`. Deploy that static directory with its `staticwebapp.config.json` file. Registry publishing is factory-owned; do not publish from this checkout.
+`npm run build` writes the release binary and `dist/site/`. Deploy that static directory with its `staticwebapp.config.json` file.
 
 ## License
 
