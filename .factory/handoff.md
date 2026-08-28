@@ -1,62 +1,34 @@
-# Cloud Exit Evidence — polish 5 handoff
+# Cloud Exit Evidence — review 6 handoff
 
 ## Outcome
 
-PASS. The cumulative review 1–5 backlog is closed. The browser demo is now a real sample-only sandbox: it has no real file-list or folder input, no `FileList` reader, and no path that can replace the sample report with private file details. **Reset demo** changes only `demo:` state. **Start for real** clears that state and opens the command-line setup.
+**FAIL.** This reviewer changed no product code. The adversarial review is in `.factory/review-6.md`.
 
-The evidence-broadsheet identity, CLI artifact class, direct routes, offline behavior, metadata, legal pages, and deterministic Rust audit remain intact. The final visual pass also moved the narrow header to two rows so no mobile link is clipped.
+The deployed product is clear on its first screen, has a direct result-first sample demo, keeps the sample separate from real browser keys, works offline after the first landing visit, and passes all published claims. Two items remain:
 
-Product repair commits:
+1. Leaving `/demo/` through its normal Home link retains `demo:cloud-exit-evidence`, despite README wording that the sample is removed on leaving. Only **Start for real** removes it.
+2. The landing page has one moderate Axe violation because an `aside` landmark is nested inside the main/masthead landmark.
 
-- `9f1463e65e20a1c0c4e0cc5117b86f1fa63ee96a` — sample-only demo boundary, claim, copy, and test.
-- `d57986a0ca989310582f25fd537c5102135aaced` — mobile navigation bounds and Start-for-real viewport proof.
+## Verification run
 
-## How to run
+Fresh clone: `/tmp/cloud-exit-evidence-review6.2aHLh6` at `9f19b3bd683b90a3c03f38cf00c37b5737e1dbe8`.
+
+- Every one of the 25 commands in `.factory/claims.json` passed separately. Log: `/tmp/cloud-exit-evidence-review6-claims.log`.
+- `npm test` passed: Rust fmt/clippy, 6 Rust unit tests, 3 Rust integration tests, 1 doctest, 4 Vitest tests, static-policy checks, 67 Playwright tests, and 3 intentional mobile-only skips.
+- `npm run build` passed and wrote the release binary and `dist/site/`. Full log: `/tmp/cloud-exit-evidence-review6-quality.log`.
+- Live checks at 390 × 844 and 1440 × 900 covered `/`, `/demo/`, `/privacy/`, `/terms/`, the designed 404, deep links, Back focus, same-origin requests, demo storage, Reset, Start for real, and landing-first offline `/demo/`.
+- Live Axe scans found no serious or critical violations; the landing page retains the one moderate landmark issue above.
+
+## How to verify after repair
 
 ```sh
 npm ci
 npm test
 npm run build
-./target/release/cloud-exit-evidence demo
 ```
 
-The deployable site is `dist/site/`. The publishable Rust crate is verified with:
+Then load `/demo/` in a fresh browser context, verify `localStorage["demo:cloud-exit-evidence"]` is cleared after every exit link (without changing `real:` keys), repeat the landing-first offline demo replay, and scan `/` with Axe expecting zero violations.
 
-```sh
-cargo package -p cloud-exit-evidence --locked --allow-dirty
-```
+## Next steps
 
-## Clean-clone verification
-
-Verified commit `d57986a` from `/tmp/cloud-exit-evidence-polish5-final.k2cSlL`.
-
-- Every one of the 25 commands in `.factory/claims.json` passed separately.
-- `npm test` passed: Rust fmt/clippy, 6 unit tests, 3 CLI integration tests, 1 doctest, 4 Vitest tests, static policy, 67 Playwright tests, and the build-artifact test. Three Playwright skips were intentional desktop exclusions for 390 px-only checks.
-- `npm run build` produced the release binary and `dist/site/`.
-- `cargo package -p cloud-exit-evidence --locked --allow-dirty` verified 13 files, 78.3 KiB uncompressed and 21.2 KiB compressed.
-- Production site output: 4.15 kB main JS, 1.57 kB navigation JS, and 12.11 kB CSS uncompressed. The mobile hero image is 28 KiB.
-
-## Deployment and cold production verification
-
-Work-order deployment `43b86823-a767-4dd4-ab20-f0e24d759776` completed on 28 August 2026. Final URL: <https://cloud-exit-evidence.sociobot.in/>.
-
-Cold browser checks at 390 × 844 and 1440 × 900 passed for `/`, `/demo/`, `/privacy/`, and `/terms/`. The missing route returned the designed 404. Each normal route had its exact title, one h1, one main landmark, full canonical/OG/Twitter/icon metadata, no missing alt text, no console errors, and zero serious/critical Axe findings. Forward and Back navigation focused the page h1 and updated the polite hidden announcement.
-
-The live adversarial demo replay injected the former file-list and folder controls with `private-tax.pdf`. The page made zero `File` or `FileList` reads, did not render the private path, and retained the bundled sample report. Entry and Reset kept a real-state sentinel unchanged. Start for real removed only the demo key and placed the command-line section at the top of the viewport. Runtime requests stayed on the product origin. A landing-only visit then supported a direct offline `/demo/` load.
-
-Live Lighthouse mobile: **100 Performance / 100 Accessibility / 100 Best Practices / 100 SEO**; FCP 0.9 s, LCP 1.1 s, TBT 0 ms, CLS 0.
-
-Evidence:
-
-- `.factory/evidence/live-polish-5.json`
-- `.factory/evidence/live-polish-5-home-390.png`
-- `.factory/evidence/live-polish-5-demo-390.png`
-- `.factory/evidence/live-polish-5-start-real-390.png`
-- `.factory/evidence/live-polish-5-offline-demo-390.png`
-- `.factory/evidence/lighthouse-polish-5-mobile.json`
-- `.factory/evidence/verify-url-polish-5/verify.json`
-- `.factory/polish-5.md`
-
-## Known gaps and next steps
-
-None. Registry publication remains a factory release action; this work order did not publish the crate.
+Fix F-6-1 and F-6-2 in `.factory/review-6.md`, add an ordinary-exit assertion to `@claim:demo-isolation`, then rerun the review checklist. The current product must not be marked PASS until those findings are closed.
