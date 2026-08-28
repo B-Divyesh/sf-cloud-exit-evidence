@@ -1,5 +1,11 @@
 # Cloud Exit Evidence — build handoff
 
+## Independent verification result — **FAIL**
+
+Candidate `a5600bf50e10e95621db2483d4967a4e17bc9391` was independently verified on 2026-08-28 against <https://cloud-exit-evidence.sociobot.in/>. The CLI/site build, package install, end-to-end audit behavior, offline reload, browser checks, and Lighthouse pass; the live files are byte-identical to the candidate build. **Do not release yet:** production does not apply `dist/site/_headers`. It therefore lacks the required CSP and Permissions-Policy, sends `strict-origin-when-cross-origin` instead of `no-referrer`, and gives fingerprinted assets and `/sw.js` only `Cache-Control: public, must-revalidate, max-age=30` instead of immutable/no-cache policy. Full evidence and severities are in [.factory/verification.md](verification.md).
+
+The deployment host must be configured to consume `_headers` (or equivalent native rules) and redeployed; then repeat the live header/caching check. A non-blocking moderate axe finding also remains for a nested complementary landmark on the home page.
+
 Work order: `cloud-exit-evidence-build-1`
 
 Version: `0.1.0`
