@@ -1,0 +1,11 @@
+{
+  "provider": "Sample cloud export",
+  "files": [
+    {"path": "Documents/lease.pdf", "size": 22, "modified": "2026-08-18T09:00:00Z"},
+    {"path": "Photos/2026/birthday.webp", "size": 84620, "modified": "2026-08-20T12:00:00Z"},
+    {"path": "Documents/tax-return.pdf", "size": 32100, "modified": "2026-08-21T11:30:00Z"}
+  ],
+  "exclusions": [
+    {"path": "Phone/Documents/**", "reason": "Android denied all-files access"}
+  ]
+}

@@ -9,6 +9,11 @@ const fileCount = document.querySelector<HTMLElement>('#file-count');
 const results = document.querySelector<HTMLElement>('#report-results');
 const empty = document.querySelector<HTMLElement>('#report-empty');
 let sampleFiles: LocalEntry[] | null = null;
+const isDemo = document.body.dataset.demo === 'true';
+
+if (!isDemo && new URLSearchParams(window.location.search).get('demo') === '1') {
+  window.location.replace('/demo/');
+}
 
 const sampleManifest = JSON.stringify(
   {
@@ -24,25 +29,28 @@ const sampleManifest = JSON.stringify(
   2
 );
 
-document.querySelector('#load-sample')?.addEventListener('click', () => {
+function loadSample(moveFocus = true) {
   if (!manifestInput || !fileCount) return;
   manifestInput.value = sampleManifest;
   sampleFiles = [
     { path: 'Documents/lease.pdf', size: 12840, modified: Date.parse('2026-08-18T09:00:00Z') },
     { path: 'Photos/2026/birthday.webp', size: 84620, modified: Date.parse('2026-08-20T12:00:00Z') }
   ];
-  fileCount.textContent = 'Demonstration copy loaded: 2 local files.';
+  fileCount.textContent = 'Sample folder loaded: 2 local files.';
   hideError();
-  manifestInput.focus();
-});
+  if (isDemo) localStorage.setItem('demo:cloud-exit-evidence', 'sample');
+  if (moveFocus) manifestInput.focus();
+}
+
+document.querySelector('#load-sample')?.addEventListener('click', () => loadSample());
 
 directoryInput?.addEventListener('change', () => {
   sampleFiles = null;
   if (fileCount) fileCount.textContent = `${directoryInput.files?.length ?? 0} local files selected.`;
 });
 
-form?.addEventListener('submit', (event) => {
-  event.preventDefault();
+function runAudit() {
+  if (!form) return;
   hideError();
   const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
   if (button) {
@@ -60,10 +68,15 @@ form?.addEventListener('submit', (event) => {
     } finally {
       if (button) {
         button.disabled = false;
-        button.textContent = 'Run local audit';
+        button.textContent = 'Check this file list';
       }
     }
-  }, 120);
+  }, isDemo ? 0 : 120);
+}
+
+form?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  runAudit();
 });
 
 function filesFromInput(list?: FileList | null): LocalEntry[] {
@@ -86,19 +99,19 @@ function renderReport(report: ReturnType<typeof auditDemo>) {
     .join('');
   results.innerHTML = `
     <div class="report-header">
-      <p class="report-label">Exit-readiness finding</p>
+      <p class="report-label">Sample file-copy result</p>
       <h3 id="report-title" class="status status--${report.readiness.replace(' ', '-')}">${label}</h3>
-      <p>${report.gaps + report.exclusions.length} unresolved coverage ${report.gaps + report.exclusions.length === 1 ? 'claim' : 'claims'}.</p>
+      <p>${report.gaps + report.exclusions.length} items need attention.</p>
     </div>
     <dl class="report-totals">
-      <div><dt>Expected</dt><dd>${report.expected}</dd></div>
-      <div><dt>Present</dt><dd>${report.present}</dd></div>
-      <div><dt>File gaps</dt><dd>${report.gaps}</dd></div>
-      <div><dt>Exclusions</dt><dd>${report.exclusions.length}</dd></div>
+      <div><dt>In file list</dt><dd>${report.expected}</dd></div>
+      <div><dt>On the drive</dt><dd>${report.present}</dd></div>
+      <div><dt>Missing or changed</dt><dd>${report.gaps}</dd></div>
+      <div><dt>Open exclusions</dt><dd>${report.exclusions.length}</dd></div>
     </dl>
-    <h4>Evidence ledger</h4>
+    <h4>Files needing attention</h4>
     <ul class="findings">${gapRows}${exclusionRows}</ul>
-    <p class="report-caveat">This browser check is illustrative coverage evidence, not a backup or restore test.</p>`;
+    <p class="report-caveat">This browser check compares the supplied file list. It does not create or test a backup.</p>`;
   empty.hidden = true;
   results.hidden = false;
   results.focus({ preventScroll: true });
@@ -144,6 +157,31 @@ const updateNetworkState = () => {
 window.addEventListener('online', updateNetworkState);
 window.addEventListener('offline', updateNetworkState);
 updateNetworkState();
+
+if (isDemo) {
+  loadSample(false);
+  runAudit();
+  document.querySelector<HTMLButtonElement>('#reset-demo')?.addEventListener('click', () => {
+    localStorage.removeItem('demo:cloud-exit-evidence');
+    loadSample(false);
+    runAudit();
+  });
+  document.querySelector<HTMLAnchorElement>('#start-real')?.addEventListener('click', () => {
+    localStorage.removeItem('demo:cloud-exit-evidence');
+  });
+}
+
+window.addEventListener('pageshow', () => {
+  const heading = document.querySelector<HTMLElement>('h1');
+  const announcement = document.querySelector<HTMLElement>('.route-announcement');
+  if (!heading) return;
+  const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+  const arrivedFromThisSite = document.referrer.startsWith(window.location.origin) || navigation?.type === 'back_forward';
+  if (!arrivedFromThisSite) return;
+  heading.setAttribute('tabindex', '-1');
+  heading.focus({ preventScroll: true });
+  if (announcement) announcement.textContent = document.title;
+});
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));

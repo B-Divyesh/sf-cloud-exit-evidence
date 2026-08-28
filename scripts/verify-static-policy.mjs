@@ -26,5 +26,8 @@ for (const route of ['/assets/*', '/evidence-ledger.webp', '/evidence-ledger-mob
 if (routeHeaders.get('/sw.js')?.['Cache-Control'] !== 'no-cache') {
   throw new Error(`${outputPath} must set no-cache for /sw.js`);
 }
+if (policy.responseOverrides?.['404']?.rewrite !== '/404.html' || policy.responseOverrides?.['404']?.statusCode !== 404) {
+  throw new Error(`${outputPath} must serve the branded /404.html document for missing routes`);
+}
 
 console.log('Azure Static Web Apps response policy verified.');

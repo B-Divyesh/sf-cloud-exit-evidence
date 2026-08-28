@@ -6,6 +6,8 @@ use cloud_exit_evidence::report::{OutputFormat, redact, render};
 use cloud_exit_evidence::{EvidenceError, Result};
 use std::path::PathBuf;
 
+const DEMO_MANIFEST: &str = include_str!("../examples/intentional-gaps/manifest.json");
+
 #[derive(Parser)]
 #[command(
     name = "cloud-exit-evidence",
@@ -56,6 +58,8 @@ enum Command {
         #[arg(short, long)]
         input: PathBuf,
     },
+    /// Run an intentional-gap audit using bundled sample files in a new temporary folder
+    Demo,
 }
 
 #[derive(Clone, Copy, ValueEnum)]
@@ -167,5 +171,49 @@ fn run(cli: Cli) -> Result<i32> {
             print!("{text}");
             Ok(0)
         }
+        Command::Demo => run_demo(),
     }
+}
+
+fn run_demo() -> Result<i32> {
+    let directory = tempfile::Builder::new()
+        .prefix("cloud-exit-evidence-demo-")
+        .tempdir()
+        .map_err(|source| EvidenceError::Io {
+            path: "temporary demo directory".into(),
+            source,
+        })?
+        .keep();
+    let manifest_path = directory.join("sample-manifest.json");
+    let destination = directory.join("offline-copy");
+    std::fs::create_dir_all(destination.join("Documents")).map_err(|source| EvidenceError::Io {
+        path: destination.display().to_string(),
+        source,
+    })?;
+    std::fs::write(&manifest_path, DEMO_MANIFEST).map_err(|source| EvidenceError::Io {
+        path: manifest_path.display().to_string(),
+        source,
+    })?;
+    std::fs::write(
+        destination.join("Documents/lease.pdf"),
+        b"sample lease evidence\n",
+    )
+    .map_err(|source| EvidenceError::Io {
+        path: destination.display().to_string(),
+        source,
+    })?;
+    let manifest = read_manifest(&manifest_path)?;
+    let report = audit(
+        &manifest,
+        &destination,
+        &AuditOptions {
+            stale_tolerance_seconds: 2,
+            acknowledgements: Vec::new(),
+            acknowledgement_note: None,
+        },
+    )?;
+    println!("{}", render(&report, OutputFormat::Terminal)?);
+    eprintln!("Demo files written to {}", directory.display());
+    eprintln!("This sample intentionally has missing and excluded coverage.");
+    Ok(0)
 }

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f3f0e8">
+    <meta name="description" content="Try Cloud Exit Evidence with a local sample that immediately shows missing and excluded files.">
+    <link rel="canonical" href="https://cloud-exit-evidence.sociobot.in/demo/">
+    <meta property="og:type" content="website"><meta property="og:title" content="Demo — Cloud Exit Evidence"><meta property="og:description" content="Try a local sample that immediately shows missing and excluded files."><meta property="og:image" content="https://cloud-exit-evidence.sociobot.in/social-card.webp">
+    <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Demo — Cloud Exit Evidence"><meta name="twitter:description" content="Try a local sample that immediately shows missing and excluded files."><meta name="twitter:image" content="https://cloud-exit-evidence.sociobot.in/social-card.webp">
+    <title>Demo — Cloud Exit Evidence</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  </head>
+  <body data-demo="true">
+    <a class="skip-link" href="#main">Skip to main content</a><div class="route-announcement" aria-live="polite" aria-atomic="true"></div>
+    <header class="site-header"><a class="wordmark" href="/" aria-label="Cloud Exit Evidence home">CEE / 001</a><nav aria-label="Primary navigation"><a href="/">Home</a><a href="#sample-audit">Sample audit</a><a href="/privacy/">Privacy</a></nav><span class="folio" aria-hidden="true">Sample record</span></header>
+    <main id="main" tabindex="-1">
+      <section class="demo-page-head" aria-labelledby="page-title"><p class="kicker">Sample audit</p><h1 id="page-title">Check a sample offline copy.</h1><p>See missing files and exclusions in a local, intentional-gap sample.</p></section>
+      <aside class="demo-banner" aria-label="Demo mode"><p><strong>Demo — sample data, nothing is saved.</strong> This page does not read or change your real data.</p><div><button class="text-action" id="reset-demo" type="button">Reset demo</button><a class="text-action" href="/" id="start-real">Start for real</a></div></aside>
+      <section class="demo section-rule" id="sample-audit" aria-labelledby="demo-title">
+        <header class="section-heading demo-heading"><div><p class="section-number">§ 01 / Local sample</p><h2 id="demo-title">Sample gap report.</h2></div><p>The report is loaded on this page. You can replace the sample with your own file list and folder.</p></header>
+        <div class="demo-layout">
+          <form id="audit-form" class="audit-form" novalidate>
+            <div class="field"><label for="manifest">File list</label><textarea id="manifest" name="manifest" rows="12" spellcheck="false" aria-describedby="manifest-help"></textarea><p id="manifest-help" class="field-help">JSON, CSV, or rclone JSON. This text stays in this tab.</p></div>
+            <fieldset><legend>Folder to compare</legend><label class="file-button" for="directory">Select a folder</label><input id="directory" name="directory" type="file" webkitdirectory multiple><p class="field-help" id="file-count">Sample folder loaded: 2 local files.</p></fieldset>
+            <div class="button-row"><button class="primary-action" type="submit">Check this file list</button><button class="text-action" id="load-sample" type="button">Load sample files</button></div><p class="form-error" id="form-error" role="alert" hidden></p>
+          </form>
+          <section class="report" id="report" aria-labelledby="report-title" aria-live="polite" tabindex="-1"><div class="report-empty" id="report-empty"><p class="stamp" aria-hidden="true">Loading sample</p><h3 id="report-title">Loading the sample report</h3></div><div id="report-results" hidden></div></section>
+        </div>
+      </section>
+    </main>
+    <footer><p>Cloud Exit Evidence / Check an offline copy before relying on it.</p><nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-cloud-exit-evidence">Source</a><a href="https://sociobot.in">Built by Param Factory</a></nav><small>Build 10fe864 + polish-1</small></footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

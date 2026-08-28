@@ -13,7 +13,8 @@
     "test:cli": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace",
     "test:unit": "vitest run --config site/vitest.config.ts",
     "test:response-policy": "npm run build:site && node scripts/verify-static-policy.mjs",
-    "test:browser": "playwright test",
+    "test:browser": "npm run build:cli && playwright test",
+    "test:claims": "npm run build:cli && npm run build:site && playwright test",
     "test:site": "npm run test:unit && npm run test:response-policy && npm run test:browser"
   },
   "devDependencies": {

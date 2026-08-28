@@ -102,3 +102,14 @@ fn cli_saves_only_encrypted_reports() {
     assert!(decrypted.status.success());
     assert!(String::from_utf8_lossy(&decrypted.stdout).contains("present.txt"));
 }
+
+#[test]
+fn cli_demo_runs_the_bundled_intentional_gap_sample() {
+    let output = binary().arg("demo").output().unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stdout.contains("NOT READY"));
+    assert!(stdout.contains("Documents/tax-return.pdf"));
+    assert!(stderr.contains("Demo files written to"));
+}

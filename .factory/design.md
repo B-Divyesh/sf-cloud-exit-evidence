@@ -45,5 +45,6 @@ The hero is an original generated editorial still life: an open archival ledger 
 - Prompt: “Top-down editorial still life for a software audit broadsheet: an open archival paper ledger with precise rows and check marks, a compact unbranded external hard drive resting on one page, and one cloud-shaped piece cleanly cut out of the opposite page to reveal a dark void beneath; monochrome black ink and warm off-white paper, subtle newsprint halftone grain, hard directional studio light, sober forensic mood, asymmetrical horizontal composition, generous clean negative space, photoreal materials with graphic editorial restraint; no people, no screens, no logos, no legible text, no watermark, no blue, no gradients.”
 - License: original project asset generated for this product; MIT-distributed with the repository.
 - Delivery: source PNG retained under `site/assets/source/`; optimized WebP ≤300 KB under `site/public/` with explicit intrinsic dimensions.
+- Social and touch assets: `site/public/social-card.webp` is a 1200×630 centre crop of the same original ledger image; `apple-touch-icon.png` is a 180×180 crop. They retain the source asset's project-only MIT provenance.
 
 All interface symbols (ticks, warning lozenges, disclosure marks) are CSS/text primitives created for the product; no third-party icon set.

@@ -1,28 +1,29 @@
 # Cloud Exit Evidence
 
-Cloud Exit Evidence is a local, provider-neutral audit CLI for people who keep an offline copy of cloud files. It compares a cloud export, provider listing, or sync manifest with a destination on disk and produces a falsifiable answer: complete, complete with explicitly acknowledged exceptions, or not ready.
+Check whether an offline cloud-file copy has the files you expect.
 
-It is deliberately **not a backup or sync tool**. It never signs in to a provider, downloads files, stores credentials, or repairs gaps.
+For people keeping a fallback drive, it lists missing, old, changed, and excluded files. It compares a supplied file list with a local folder. It does not sign in, copy files, or restore files.
 
 ## Install
 
-Build the single binary from source (Rust 1.85+):
+Build the Rust command-line tool from this repository:
 
 ```sh
 cargo install --path crates/cloud-exit-evidence
 cloud-exit-evidence --help
 ```
 
-Or build a release binary locally:
+Try the bundled sample immediately:
 
 ```sh
-cargo build --release --locked
-./target/release/cloud-exit-evidence --help
+cloud-exit-evidence demo
 ```
 
-## Usage
+The command writes a sample folder in a new temporary directory. It prints the directory path and an intentional-gap report.
 
-Audit a JSON, CSV, or `rclone lsjson` manifest against an offline directory:
+## Check a folder
+
+Give the tool a JSON, CSV, or rclone `lsjson` file list and an offline folder:
 
 ```sh
 cloud-exit-evidence audit \
@@ -30,71 +31,76 @@ cloud-exit-evidence audit \
   --destination /media/offline/cloud-copy
 ```
 
-Use JSON output in automation and fail the job when evidence is incomplete:
+Use JSON output in a script. Missing files make the default command exit with code 2:
 
 ```sh
 cloud-exit-evidence audit \
   --manifest cloud-export.json \
   --destination /media/offline/cloud-copy \
-  --format json \
-  --fail-on gaps
+  --format json
 ```
 
-Record an understood provider or OS limitation. Acknowledgement is explicit and appears in the evidence:
+Use `--acknowledge` only for an exclusion you have checked:
 
 ```sh
 cloud-exit-evidence audit \
-  --manifest nextcloud.json \
-  --destination /media/offline/phone \
-  --acknowledge 'Documents/**' \
-  --acknowledgement-note 'Android permission restriction; exported separately monthly'
+  --manifest cloud-export.json \
+  --destination /media/offline/cloud-copy \
+  --acknowledge 'Phone/Documents/**' \
+  --acknowledgement-note 'Exported separately each month'
 ```
 
-Save an encrypted evidence report. The passphrase is read from an environment variable, never a command-line argument or prompt:
+Use `--redact-paths` to replace printed file paths with stable labels.
+
+## Save an encrypted report
+
+Set a passphrase outside the command line, then write an encrypted `.cee` report:
 
 ```sh
 export CEE_PASSPHRASE='use-a-password-manager-generated-secret'
 cloud-exit-evidence audit \
-  --manifest cloud-export.csv \
+  --manifest cloud-export.json \
   --destination /media/offline/cloud-copy \
   --format json \
-  --output evidence-2026-08.cee
+  --output evidence.cee
 
-cloud-exit-evidence decrypt --input evidence-2026-08.cee
+cloud-exit-evidence decrypt --input evidence.cee
 ```
 
-`--redact-paths` replaces file paths with stable SHA-256 labels in displayed output. Classification totals remain readable.
+Saved reports use XChaCha20-Poly1305 encryption and an Argon2id-derived key. Plain terminal output remains under your control.
 
-### Manifest formats
+## File-list rules
 
-Native JSON:
+JSON uses a `files` array. Each file needs a relative `path`. It can also include `size`, `modified`, and `sha256`.
 
 ```json
 {
-  "provider": "Example Cloud",
-  "generated_at": "2026-08-28T10:00:00Z",
   "files": [
-    {"path": "Documents/plan.pdf", "size": 4210, "modified": "2026-08-22T08:30:00Z", "sha256": "optional-lowercase-hex"}
+    {"path": "Documents/plan.pdf", "size": 4210, "modified": "2026-08-22T08:30:00Z"}
   ],
   "exclusions": [
-    {"path": "Documents/private/**", "reason": "mobile OS denied folder access"}
+    {"path": "Phone/Documents/**", "reason": "Android denied folder access"}
   ]
 }
 ```
 
-CSV headers are `path,size,modified,sha256,excluded,exclusion_reason`. Only `path` is required. Rows with `excluded=true` describe known coverage exclusions rather than expected files.
+CSV headers are `path,size,modified,sha256,excluded,exclusion_reason`. rclone lists use `Path`, `Size`, `ModTime`, and `IsDir`.
 
-`rclone lsjson` arrays are accepted directly using `Path`, `Size`, `ModTime`, and `IsDir`. Directories are ignored.
+Paths must stay inside the selected folder. Duplicate and escaping paths are rejected. Links are reported as unsafe and are never followed.
 
-Paths must be relative, UTF-8, and must not contain `..`. Duplicate manifest paths are rejected. Symlinks in the destination are listed as unsafe and are never followed.
+## Results and exit codes
 
-### Readiness and exit codes
+- `READY` means every listed file passed and no exclusion is open.
+- `READY WITH EXCEPTIONS` means every file passed and listed exclusions were acknowledged.
+- `NOT READY` means a file is missing, old, changed, unsafe, unreadable, or unacknowledged.
 
-- `READY`: every expected file is present and current, and no exclusions are open.
-- `READY WITH EXCEPTIONS`: file evidence passes and every declared exclusion is explicitly acknowledged.
-- `NOT READY`: missing, stale, size/hash mismatch, unsafe, unreadable, or unacknowledged coverage exists.
+The command exits 0 after a passing policy, 2 for a failed readiness policy, and 3 for invalid input or a file-system error. Use `--fail-on exceptions` or `--fail-on never` when needed.
 
-Exit codes: `0` completed and the selected `--fail-on` policy passed; `2` readiness policy failed; `3` invalid input or filesystem error. The default `--fail-on gaps` makes a not-ready audit exit `2`, while acknowledged exceptions pass.
+## Website and privacy
+
+The site at <https://cloud-exit-evidence.sociobot.in> includes a local sample at [/demo/](https://cloud-exit-evidence.sociobot.in/demo/). The sample opens with a report, uses only `demo:` browser storage, and is removed when you leave it.
+
+The browser sample does not upload file-list text or selected file details. It calls no third-party runtime service. The CLI contains no network client or telemetry.
 
 ## Develop and verify
 
@@ -102,17 +108,10 @@ Exit codes: `0` completed and the selected `--fail-on` policy passed; `2` readin
 npm ci
 npm test
 npm run build
+cargo package -p cloud-exit-evidence --locked --allow-dirty
 ```
 
-`npm test` runs Rust formatting/lints/tests plus site unit and browser tests. It also verifies the generated Azure Static Web Apps response policy: a restrictive CSP and permissions policy, `no-referrer`, immutable fingerprinted assets, and a revalidated service worker. `npm run build` creates the release CLI and the deployable static site at `dist/site/`. Deploy `dist/site/` to Azure Static Web Apps; its root-level `staticwebapp.config.json` is required for the security and cache policy. `cargo package --locked --allow-dirty` verifies the publishable Rust crate; registry publishing is handled by the factory.
-
-## Website
-
-The landing page at <https://cloud-exit-evidence.sociobot.in> documents the CLI and includes a fully local browser demo. Selected folder names and manifest content stay in that browser tab: there are no accounts, analytics, third-party scripts, or network uploads.
-
-## Privacy and security
-
-Cloud Exit Evidence works offline and has no telemetry. It reads manifests and destination metadata, hashes local files only when the manifest provides a SHA-256 value, and never follows symlinks. Saved reports created with `--output` are encrypted with XChaCha20-Poly1305 using an Argon2id-derived key. Plain stdout remains the caller’s responsibility.
+`npm run build` writes the release binary and `dist/site/`. Deploy that static directory with its `staticwebapp.config.json` file. Registry publishing is factory-owned; do not publish from this checkout.
 
 ## License
 
