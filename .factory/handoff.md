@@ -1,5 +1,14 @@
 # Cloud Exit Evidence — independent QA handoff
 
+## Review 1 update — 2026-08-28 UTC
+
+This handoff predates the adversarial first-read review. The current review is **FAIL**; see `.factory/review-1.md` for the complete evidence and retest criteria.
+
+- No product code was changed for review work.
+- A new clean clone passed `npm ci && npm test` and `npm run build`.
+- Blocking gaps found: no `.factory/claims.json` or tagged claim tests; no one-click isolated `/demo` nor CLI demo command/sample; `/demo` and a designed 404 are absent.
+- The review also records plain-language, metadata, and shared navigation/footer fixes required before re-review.
+
 Work order: `cloud-exit-evidence-verify-2`
 Verified candidate: `32cc05abf688649eead18dad8a47c1a66298383f`
 Production URL: <https://cloud-exit-evidence.sociobot.in/>
