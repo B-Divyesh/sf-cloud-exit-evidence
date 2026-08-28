@@ -1,31 +1,31 @@
-# Landing copy audit — polish 1
+# Landing copy audit — polish 2
 
-All visitor-facing landing sentences were checked against the 22-word cap and the plain-words banned-word list.
+All visitor-facing landing sentences are at most 22 words and contain none of the banned marketing words.
 
 | Words | Text | Result |
 | ---: | --- | --- |
 | 5 | Check your offline cloud copy. | Pass |
 | 16 | For people keeping a fallback drive, find missing and outdated cloud files before relying on it. | Pass |
 | 7 | Shows a sample gap report right away. | Pass |
-| 5 | Compare a file list with the folder you plan to keep. | Pass |
-| 5 | A sync is not a backup. | Pass |
-| 8 | This checks coverage. Keep versioned media and test restores too. | Pass |
-| 6 | Compare files in three steps. | Pass |
-| 14 | Use a JSON, CSV, or rclone file list. Unsafe and duplicate paths are rejected. | Pass |
-| 16 | Check the selected folder without following links. Compare names, sizes, dates, and supplied hashes. | Pass |
-| 15 | See missing, old, changed, and excluded files. Record accepted exclusions in the CLI report. | Pass |
-| 6 | See a sample gap report. | Pass |
-| 17 | It compares three exported files with a partial folder. The sample highlights a missing file and an open exclusion. | Pass |
-| 6 | Run the full check offline. | Pass |
+| 3 | Keep versioned media. | Pass |
+| 9 | Test real restores before relying on any copy. | Pass |
+| 11 | Compare a file list with the folder you plan to keep. | Pass |
+| 10 | Use JSON, CSV, or an rclone JSON file list. | Pass |
+| 6 | Unsafe and duplicate paths are rejected. | Pass |
+| 8 | Check the selected folder without following links. | Pass |
+| 7 | Compare names, sizes, dates, and supplied hashes. | Pass |
+| 7 | See missing, old, changed, and excluded files. | Pass |
+| 9 | Record accepted exclusions in the command-line report. | Pass |
+| 11 | The sample highlights two missing files and an open exclusion. | Pass |
 | 15 | Use one Rust command-line tool. It does not need an account or a network connection. | Pass |
 
 ## Terminology
 
 | Concept | One term used |
 | --- | --- |
-| Provider output | file list |
-| Local destination | offline copy / folder |
-| Test data | sample |
-| Problem result | gap |
-| Known missing coverage | exclusion |
-| Command-line program | CLI |
+| Files expected from the provider | file list |
+| Physical destination | offline copy |
+| Comparison action | check |
+| Sample result | sample gap report |
+| Terminal program | command-line tool |
+| rclone input | rclone JSON file list |

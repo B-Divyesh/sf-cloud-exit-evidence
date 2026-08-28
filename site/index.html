@@ -36,7 +36,7 @@
         <div class="hero-grid">
           <div class="standfirst">
             <p>For people keeping a fallback drive, find missing and outdated cloud files before relying on it.</p>
-            <a class="primary-action" href="/?demo=1">Try it with sample data <span aria-hidden="true">→</span></a>
+            <a class="primary-action" href="/demo/">Try it with sample data <span aria-hidden="true">→</span></a>
             <p class="action-note">Shows a sample gap report right away.</p>
             <ul class="plain-facts" aria-label="Product facts"><li>No account</li><li>No upload</li><li>Runs locally</li></ul>
           </div>
@@ -44,32 +44,32 @@
             <img src="/evidence-ledger.webp" srcset="/evidence-ledger-mobile.webp 720w, /evidence-ledger.webp 1440w" sizes="(max-width: 700px) calc(100vw - 40px), (max-width: 900px) 63vw, 47vw" width="1440" height="960" fetchpriority="high" alt="An archival ledger holding a physical drive beside a cloud-shaped hole cut through the paper">
             <figcaption><span>File copy check.</span> Compare a file list with the folder you plan to keep.</figcaption>
           </figure>
-          <aside class="front-note" aria-label="What this tool does not do"><span class="proof-mark" aria-hidden="true">×</span><p><strong>A sync is not a backup.</strong> This checks coverage. Keep versioned media and test restores too.</p></aside>
+          <aside class="front-note" aria-label="Backup reminder"><span class="proof-mark" aria-hidden="true">×</span><p><strong>Keep versioned media.</strong> Test real restores before relying on any copy.</p></aside>
         </div>
       </section>
       <section class="method section-rule" id="how-it-works" aria-labelledby="method-title">
         <header class="section-heading"><p class="section-number">§ 01 / How it works</p><h2 id="method-title">Compare files in three steps.</h2></header>
         <ol class="method-list">
-          <li><span class="step">01</span><h3>Read your file list</h3><p>Use a JSON, CSV, or rclone file list. Unsafe and duplicate paths are rejected.</p></li>
+          <li><span class="step">01</span><h3>Read your file list</h3><p>Use JSON, CSV, or an rclone JSON file list. Unsafe and duplicate paths are rejected.</p></li>
           <li><span class="step">02</span><h3>Read your drive</h3><p>Check the selected folder without following links. Compare names, sizes, dates, and supplied hashes.</p></li>
-          <li><span class="step">03</span><h3>Show what needs work</h3><p>See missing, old, changed, and excluded files. Record accepted exclusions in the CLI report.</p></li>
+          <li><span class="step">03</span><h3>Show what needs work</h3><p>See missing, old, changed, and excluded files. Record accepted exclusions in the command-line report.</p></li>
         </ol>
       </section>
       <section class="demo-preview section-rule" aria-labelledby="preview-title">
-        <header class="section-heading demo-heading"><div><p class="section-number">§ 02 / Sample audit</p><h2 id="preview-title">See a sample gap report.</h2></div><p>It compares three exported files with a partial folder. The sample highlights a missing file and an open exclusion.</p></header>
-        <a class="sample-preview" href="/demo/" aria-label="Try sample audit and see the sample gap report"><p class="stamp" aria-hidden="true">Sample result</p><strong>Not ready</strong><span>1 missing file · 1 open exclusion</span><em>Open the full local demo →</em></a>
+        <header class="section-heading demo-heading"><div><p class="section-number">§ 02 / Sample file-copy check</p><h2 id="preview-title">See a sample gap report.</h2></div><p>It compares three exported files with a partial folder. The sample highlights two missing files and an open exclusion.</p></header>
+        <a class="sample-preview" href="/demo/" aria-label="Try sample file-copy check and see the sample gap report"><p class="stamp" aria-hidden="true">Sample result</p><strong>Not ready</strong><span>2 missing files · 1 open exclusion</span><em>Open the full local demo →</em></a>
       </section>
       <section class="install section-rule" id="install" aria-labelledby="install-title">
         <header class="section-heading"><p class="section-number">§ 03 / Command line</p><h2 id="install-title">Run the full check offline.</h2></header>
         <div class="install-grid">
           <div><p class="lede">Use one Rust command-line tool. It does not need an account or a network connection.</p><div class="command" aria-label="Installation command"><code tabindex="0">cargo install --git https://github.com/B-Divyesh/sf-cloud-exit-evidence cloud-exit-evidence</code><button class="copy-button" type="button" data-copy="cargo install --git https://github.com/B-Divyesh/sf-cloud-exit-evidence cloud-exit-evidence">Copy</button></div><div class="command" aria-label="Demo command"><code tabindex="0">cloud-exit-evidence demo</code><button class="copy-button" type="button" data-copy="cloud-exit-evidence demo">Copy</button></div></div>
-          <dl class="edition-notes"><div><dt>Reads</dt><dd>JSON, CSV, and rclone lists</dd></div><div><dt>Checks</dt><dd>Names, sizes, dates, and hashes</dd></div><div><dt>Saves</dt><dd>Encrypted reports when requested</dd></div><div><dt>License</dt><dd>MIT</dd></div></dl>
+          <dl class="edition-notes"><div><dt>Reads</dt><dd>JSON, CSV, and rclone JSON lists</dd></div><div><dt>Checks</dt><dd>Names, sizes, dates, and hashes</dd></div><div><dt>Saves</dt><dd>Encrypted reports when requested</dd></div><div><dt>License</dt><dd>MIT</dd></div></dl>
         </div>
-        <div class="terminal-recording" aria-label="Terminal recording of cloud-exit-evidence demo"><span>$ cloud-exit-evidence demo</span><span>NOT READY</span><span>missing: Documents/tax-return.pdf</span><span>open exclusion: Phone/Documents/**</span><span>Demo files written to /tmp/cloud-exit-evidence-demo-…</span></div>
+        <figure class="terminal-recording"><img src="/cloud-exit-evidence-demo.svg" width="760" height="298" alt="Terminal recording of cloud-exit-evidence demo showing two missing files and one open exclusion."><figcaption>Recorded from the bundled sample: <code>cloud-exit-evidence demo</code>.</figcaption><pre class="sr-only">CLOUD EXIT EVIDENCE / NOT READY\n[MISSING] Photos/2026/birthday.webp\n[MISSING] Documents/tax-return.pdf\n[OPEN] Phone/Documents/**</pre></figure>
         <p class="source-link"><a href="https://github.com/B-Divyesh/sf-cloud-exit-evidence">Read the source and file-list format <span aria-hidden="true">↗</span></a></p>
       </section>
     </main>
-    <footer><p>Cloud Exit Evidence / Check an offline copy before relying on it.</p><nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-cloud-exit-evidence">Source</a><a href="https://sociobot.in">Built by Param Factory</a></nav><small>Build 10fe864 + polish-1</small></footer>
+    <footer><p>Cloud Exit Evidence / Check an offline copy before relying on it.</p><nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-cloud-exit-evidence">Source</a><a href="https://sociobot.in">Built by Param Factory</a></nav><small>Build polish-2</small></footer>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

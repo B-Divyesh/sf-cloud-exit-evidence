@@ -19,11 +19,11 @@ Try the bundled sample immediately:
 cloud-exit-evidence demo
 ```
 
-The command writes a sample folder in a new temporary directory. It prints the directory path and an intentional-gap report.
+The command writes a sample folder in a new temporary directory. It prints two missing files and one open exclusion.
 
 ## Check a folder
 
-Give the tool a JSON, CSV, or rclone `lsjson` file list and an offline folder:
+Give the tool a JSON, CSV, or rclone JSON (`lsjson`) file list and an offline folder:
 
 ```sh
 cloud-exit-evidence audit \
@@ -67,7 +67,7 @@ cloud-exit-evidence audit \
 cloud-exit-evidence decrypt --input evidence.cee
 ```
 
-Saved reports use XChaCha20-Poly1305 encryption and an Argon2id-derived key. Plain terminal output remains under your control.
+Saved reports are encrypted and need the supplied passphrase to decrypt. Plain terminal output remains under your control.
 
 ## File-list rules
 
@@ -84,7 +84,7 @@ JSON uses a `files` array. Each file needs a relative `path`. It can also includ
 }
 ```
 
-CSV headers are `path,size,modified,sha256,excluded,exclusion_reason`. rclone lists use `Path`, `Size`, `ModTime`, and `IsDir`.
+CSV headers are `path,size,modified,sha256,excluded,exclusion_reason`. rclone JSON lists use `Path`, `Size`, `ModTime`, and `IsDir`.
 
 Paths must stay inside the selected folder. Duplicate and escaping paths are rejected. Links are reported as unsafe and are never followed.
 
@@ -94,7 +94,9 @@ Paths must stay inside the selected folder. Duplicate and escaping paths are rej
 - `READY WITH EXCEPTIONS` means every file passed and listed exclusions were acknowledged.
 - `NOT READY` means a file is missing, old, changed, unsafe, unreadable, or unacknowledged.
 
-The command exits 0 after a passing policy, 2 for a failed readiness policy, and 3 for invalid input or a file-system error. Use `--fail-on exceptions` or `--fail-on never` when needed.
+A passing check exits 0. A failed readiness check exits 2. Invalid input or file errors exit 3.
+
+The `--fail-on` option chooses the exit rule. Use `--fail-on exceptions` or `--fail-on never` when needed.
 
 ## Website and privacy
 

@@ -46,5 +46,6 @@ The hero is an original generated editorial still life: an open archival ledger 
 - License: original project asset generated for this product; MIT-distributed with the repository.
 - Delivery: source PNG retained under `site/assets/source/`; optimized WebP ≤300 KB under `site/public/` with explicit intrinsic dimensions.
 - Social and touch assets: `site/public/social-card.webp` is a 1200×630 centre crop of the same original ledger image; `apple-touch-icon.png` is a 180×180 crop. They retain the source asset's project-only MIT provenance.
+- Terminal evidence: `site/public/cloud-exit-evidence-demo.svg` is a hand-composed, self-hosted SVG transcript generated from the bundled `cloud-exit-evidence demo` command on 2026-08-28. It is an original project asset, shares the repository MIT license, and uses the broadsheet ink/paper palette.
 
 All interface symbols (ticks, warning lozenges, disclosure marks) are CSS/text primitives created for the product; no third-party icon set.

@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync, mkdirSync, symlinkSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -26,9 +27,27 @@ for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
 test('@claim:demo-sample-report direct demo loads an intentional-gap report', async ({ page }) => {
   await page.goto('/demo/');
   await expect(page.getByRole('heading', { name: 'Not ready' })).toBeVisible();
+  await expect(page.getByText('Photos/2026/birthday.webp')).toBeVisible();
   await expect(page.getByText('Documents/tax-return.pdf')).toBeVisible();
   await expect(page.getByText('Phone/Documents/**')).toBeVisible();
   await expect(page.getByText('Demo — sample data, nothing is saved.')).toBeVisible();
+});
+
+test('@claim:demo-first-screen mobile demo shows the full sample result before scrolling', async ({ page }) => {
+  test.skip(page.viewportSize()?.width !== 390, 'This claim measures the required 390 px phone viewport.');
+  await page.goto('/demo/');
+  const result = page.getByRole('heading', { name: 'Not ready' });
+  const report = page.locator('.demo-report-first');
+  const birthday = report.getByText('Photos/2026/birthday.webp', { exact: true });
+  const taxReturn = report.getByText('Documents/tax-return.pdf', { exact: true });
+  const exclusion = report.getByText('Phone/Documents/**', { exact: true });
+  await expect(result).toBeVisible();
+  for (const item of [result, birthday, taxReturn, exclusion]) {
+    const box = await item.boundingBox();
+    expect(box, 'sample result item has a rendered box').not.toBeNull();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+  }
+  await page.screenshot({ path: '.factory/evidence/demo-first-screen-390.png', fullPage: false });
 });
 
 test('the documented ?demo=1 shortcut enters the isolated demo route', async ({ page }) => {
@@ -76,13 +95,17 @@ test('@claim:offline-reload service worker reloads the sample while offline', as
   await context.setOffline(false);
 });
 
-test('@claim:routing-focus demo and back navigation focus the route heading', async ({ page }) => {
+test('@claim:routing-focus forward and back route navigation focus and announce the page heading with no-referrer', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('link', { name: 'Demo', exact: true }).click();
+  await expect(page).toHaveURL(/\/demo\/$/);
+  await expect(page.getByRole('heading', { name: 'Check a sample offline copy.' })).toBeFocused();
+  await expect(page.locator('.route-announcement')).toHaveText('Demo — Cloud Exit Evidence');
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Check your offline cloud copy.' })).toBeFocused();
   await page.getByRole('link', { name: 'Try it with sample data' }).click();
   await expect(page).toHaveURL(/\/demo\/$/);
   await expect(page.getByRole('heading', { name: 'Check a sample offline copy.' })).toBeFocused();
-  await page.goBack();
-  await expect(page.getByRole('heading', { name: 'Check your offline cloud copy.' })).toBeFocused();
 });
 
 test('keyboard reaches the skip link and every first-screen action at mobile width', async ({ page }) => {
@@ -94,10 +117,17 @@ test('keyboard reaches the skip link and every first-screen action at mobile wid
   await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
 });
 
-test('@claim:cli-demo CLI demo writes a sample folder and returns its intentional gaps', () => {
+test('@claim:cli-demo CLI demo, shipped fixture, and landing recording report the same sample gaps', async ({ page }) => {
   const result = execFileSync(binary, ['demo'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   expect(result).toContain('NOT READY');
+  expect(result).toContain('Photos/2026/birthday.webp');
   expect(result).toContain('Documents/tax-return.pdf');
+  expect(result).toContain('Phone/Documents/**');
+  expect(readFileSync(join(process.cwd(), 'examples', 'intentional-gaps', 'README.md'), 'utf8')).toContain('missing photo and tax return');
+  await page.goto('/');
+  await expect(page.locator('.terminal-recording')).toContainText('Photos/2026/birthday.webp');
+  await expect(page.locator('.terminal-recording')).toContainText('Documents/tax-return.pdf');
+  await expect(page.locator('.terminal-recording')).toContainText('Phone/Documents/**');
 });
 
 test('@claim:cli-no-network CLI contains no network client code or network client dependency', () => {
@@ -106,6 +136,23 @@ test('@claim:cli-no-network CLI contains no network client code or network clien
   const dependencies = readFileSync(join(process.cwd(), 'crates', 'cloud-exit-evidence', 'Cargo.toml'), 'utf8');
   expect(source).not.toMatch(/std::net|TcpStream|UdpSocket|reqwest|ureq|https?:\/\//i);
   expect(dependencies).not.toMatch(/reqwest|ureq|hyper|curl|tokio/i);
+});
+
+test('@claim:cli-read-only normal CLI checks leave the manifest and selected folder unchanged', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-read-only-'));
+  try {
+    const manifest = join(directory, 'manifest.json');
+    const destination = join(directory, 'offline');
+    mkdirSync(destination);
+    writeFileSync(join(destination, 'present.txt'), 'data');
+    writeFileSync(manifest, '{"files":[{"path":"present.txt","size":4}]}');
+    const before = createHash('sha256').update(readFileSync(manifest)).update(readFileSync(join(destination, 'present.txt'))).digest('hex');
+    execFileSync(binary, ['audit', '--manifest', manifest, '--destination', destination, '--format', 'json'], { encoding: 'utf8' });
+    const after = createHash('sha256').update(readFileSync(manifest)).update(readFileSync(join(destination, 'present.txt'))).digest('hex');
+    expect(after).toBe(before);
+    expect(readdirSync(directory).sort()).toEqual(['manifest.json', 'offline']);
+    expect(readdirSync(destination)).toEqual(['present.txt']);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
 test('@claim:cli-formats-readiness CLI reads JSON, CSV, and rclone lists and signals missing, stale, size, and hash gaps', () => {
@@ -137,6 +184,34 @@ test('@claim:cli-formats-readiness CLI reads JSON, CSV, and rclone lists and sig
       writeFileSync(detailed, `{"files":[${file}]}`);
       try { execFileSync(binary, ['audit', '--manifest', detailed, '--destination', destination, '--format', 'json'], { encoding: 'utf8' }); }
       catch (error) { expect((error as { stdout: Buffer }).stdout.toString()).toMatch(/"(size_mismatch|stale|hash_mismatch)": 1/); }
+    }
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('@claim:cli-acknowledgement acknowledged checked exclusions produce a ready-with-exceptions report', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-acknowledgement-'));
+  try {
+    const manifest = join(directory, 'manifest.json'); const destination = join(directory, 'offline');
+    mkdirSync(destination); writeFileSync(join(destination, 'present.txt'), 'data');
+    writeFileSync(manifest, '{"files":[{"path":"present.txt","size":4}],"exclusions":[{"path":"Phone/Documents/**","reason":"permission denied"}]}');
+    const output = execFileSync(binary, ['audit', '--manifest', manifest, '--destination', destination, '--format', 'json', '--acknowledge', 'Phone/Documents/**', '--acknowledgement-note', 'checked separate export'], { encoding: 'utf8' });
+    expect(JSON.parse(output).readiness).toBe('ready_with_exceptions');
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('@claim:cli-exit-codes passing, gap, and invalid checks exit with 0, 2, and 3', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-exit-codes-'));
+  try {
+    const destination = join(directory, 'offline'); mkdirSync(destination); writeFileSync(join(destination, 'present.txt'), 'data');
+    const ready = join(directory, 'ready.json'); const gap = join(directory, 'gap.json'); const invalid = join(directory, 'invalid.json');
+    writeFileSync(ready, '{"files":[{"path":"present.txt","size":4}]}');
+    writeFileSync(gap, '{"files":[{"path":"missing.txt","size":1}]}');
+    writeFileSync(invalid, '{not valid json');
+    expect(execFileSync(binary, ['audit', '--manifest', ready, '--destination', destination]).toString()).toContain('READY');
+    for (const [manifest, expectedStatus] of [[gap, 2], [invalid, 3]] as const) {
+      try { execFileSync(binary, ['audit', '--manifest', manifest, '--destination', destination]); }
+      catch (error) { expect((error as { status: number }).status).toBe(expectedStatus); continue; }
+      throw new Error(`Expected ${manifest} to exit ${expectedStatus}`);
     }
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
@@ -181,6 +256,20 @@ test('@claim:encrypted-report CLI encrypts a saved report and decrypts it with i
     const decrypted = execFileSync(binary, ['decrypt', '--input', report], { encoding: 'utf8', env: { ...process.env, CEE_PASSPHRASE: 'integration-secret' } });
     expect(decrypted).toContain('present.txt');
   } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('@claim:site-no-third-party-runtime every site route requests only its own origin', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(request.url()));
+  for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
+    await page.goto(path);
+    await expect(page.locator('main')).toBeVisible();
+  }
+  expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
+  const source = ['site/index.html', 'site/demo/index.html', 'site/privacy/index.html', 'site/terms/index.html', 'site/404.html']
+    .map((path) => readFileSync(join(process.cwd(), path), 'utf8')).join('\n');
+  expect(source).not.toMatch(/<script[^>]+https?:\/\//i);
+  expect(source).not.toMatch(/<(?:link|script)[^>]+(?:google-analytics|googletagmanager|doubleclick|fonts\.googleapis|use\.typekit)/i);
 });
 
 test('@claim:mit-license repository ships the MIT license text', () => {

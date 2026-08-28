@@ -1,5 +1,6 @@
 import './styles.css';
 import { auditDemo, parseManifest, type LocalEntry } from './demo';
+import { focusHeadingAfterNavigation, markInternalNavigations } from './navigation';
 
 const form = document.querySelector<HTMLFormElement>('#audit-form');
 const manifestInput = document.querySelector<HTMLTextAreaElement>('#manifest');
@@ -19,7 +20,7 @@ const sampleManifest = JSON.stringify(
   {
     provider: 'Example cloud export',
     files: [
-      { path: 'Documents/lease.pdf', size: 12840, modified: '2026-08-18T09:00:00Z' },
+      { path: 'Documents/lease.pdf', size: 22, modified: '2026-08-18T09:00:00Z' },
       { path: 'Photos/2026/birthday.webp', size: 84620, modified: '2026-08-20T12:00:00Z' },
       { path: 'Documents/tax-return.pdf', size: 32100, modified: '2026-08-21T11:30:00Z' }
     ],
@@ -33,10 +34,9 @@ function loadSample(moveFocus = true) {
   if (!manifestInput || !fileCount) return;
   manifestInput.value = sampleManifest;
   sampleFiles = [
-    { path: 'Documents/lease.pdf', size: 12840, modified: Date.parse('2026-08-18T09:00:00Z') },
-    { path: 'Photos/2026/birthday.webp', size: 84620, modified: Date.parse('2026-08-20T12:00:00Z') }
+    { path: 'Documents/lease.pdf', size: 22, modified: Date.parse('2026-08-18T09:00:00Z') }
   ];
-  fileCount.textContent = 'Sample folder loaded: 2 local files.';
+  fileCount.textContent = 'Sample folder loaded: 1 local file.';
   hideError();
   if (isDemo) localStorage.setItem('demo:cloud-exit-evidence', 'sample');
   if (moveFocus) manifestInput.focus();
@@ -49,7 +49,7 @@ directoryInput?.addEventListener('change', () => {
   if (fileCount) fileCount.textContent = `${directoryInput.files?.length ?? 0} local files selected.`;
 });
 
-function runAudit() {
+function runAudit(moveFocus = !isDemo) {
   if (!form) return;
   hideError();
   const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
@@ -62,7 +62,7 @@ function runAudit() {
       const manifest = parseManifest(manifestInput?.value ?? '');
       const localEntries = sampleFiles ?? filesFromInput(directoryInput?.files);
       if (!localEntries.length) throw new Error('Select a destination folder or load the evidence fixture.');
-      renderReport(auditDemo(manifest, localEntries));
+      renderReport(auditDemo(manifest, localEntries), moveFocus);
     } catch (error) {
       showError(error instanceof Error ? error.message : 'The audit could not be completed.');
     } finally {
@@ -88,7 +88,7 @@ function filesFromInput(list?: FileList | null): LocalEntry[] {
   });
 }
 
-function renderReport(report: ReturnType<typeof auditDemo>) {
+function renderReport(report: ReturnType<typeof auditDemo>, moveFocus: boolean) {
   if (!results || !empty) return;
   const label = report.readiness === 'ready' ? 'Ready' : 'Not ready';
   const gapRows = report.findings
@@ -114,7 +114,7 @@ function renderReport(report: ReturnType<typeof auditDemo>) {
     <p class="report-caveat">This browser check compares the supplied file list. It does not create or test a backup.</p>`;
   empty.hidden = true;
   results.hidden = false;
-  results.focus({ preventScroll: true });
+  if (moveFocus) results.focus({ preventScroll: true });
 }
 
 function escapeHtml(value: string): string {
@@ -160,28 +160,19 @@ updateNetworkState();
 
 if (isDemo) {
   loadSample(false);
-  runAudit();
+  runAudit(false);
   document.querySelector<HTMLButtonElement>('#reset-demo')?.addEventListener('click', () => {
     localStorage.removeItem('demo:cloud-exit-evidence');
     loadSample(false);
-    runAudit();
+    runAudit(false);
   });
   document.querySelector<HTMLAnchorElement>('#start-real')?.addEventListener('click', () => {
     localStorage.removeItem('demo:cloud-exit-evidence');
   });
 }
 
-window.addEventListener('pageshow', () => {
-  const heading = document.querySelector<HTMLElement>('h1');
-  const announcement = document.querySelector<HTMLElement>('.route-announcement');
-  if (!heading) return;
-  const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
-  const arrivedFromThisSite = document.referrer.startsWith(window.location.origin) || navigation?.type === 'back_forward';
-  if (!arrivedFromThisSite) return;
-  heading.setAttribute('tabindex', '-1');
-  heading.focus({ preventScroll: true });
-  if (announcement) announcement.textContent = document.title;
-});
+markInternalNavigations();
+window.addEventListener('pageshow', focusHeadingAfterNavigation);
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));

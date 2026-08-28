@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="298" viewBox="0 0 760 298" role="img" aria-labelledby="title desc">
+  <title id="title">cloud-exit-evidence demo terminal recording</title>
+  <desc id="desc">The bundled demo reports two missing files and one open exclusion.</desc>
+  <rect width="760" height="298" fill="#171714"/>
+  <rect x="1" y="1" width="758" height="296" fill="none" stroke="#F3F0E8" stroke-opacity=".5"/>
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="15">
+    <text x="24" y="34" fill="#F3F0E8">$ cloud-exit-evidence demo</text>
+    <text x="24" y="66" fill="#FFC0B9" font-weight="700">CLOUD EXIT EVIDENCE  /  NOT READY</text>
+    <text x="24" y="96" fill="#F3F0E8">Missing       2   Excluded      1   Open           1</text>
+    <text x="24" y="132" fill="#F3F0E8">[MISSING] Photos/2026/birthday.webp — not found in destination</text>
+    <text x="24" y="160" fill="#F3F0E8">[MISSING] Documents/tax-return.pdf — not found in destination</text>
+    <text x="24" y="188" fill="#F3F0E8">[OPEN] Phone/Documents/** — Android denied all-files access</text>
+    <text x="24" y="232" fill="#D1CEC5">Demo files written to /tmp/cloud-exit-evidence-demo-…</text>
+    <text x="24" y="266" fill="#D1CEC5">This sample intentionally has missing and excluded coverage.</text>
+  </g>
+</svg>

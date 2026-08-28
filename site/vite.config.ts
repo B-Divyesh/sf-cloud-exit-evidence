@@ -3,6 +3,11 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   root: resolve(import.meta.dirname),
+  preview: {
+    headers: {
+      'Referrer-Policy': 'no-referrer'
+    }
+  },
   build: {
     outDir: resolve(import.meta.dirname, '../dist/site'),
     emptyOutDir: true,
