@@ -102,7 +102,9 @@ Use `--fail-on exceptions` to fail on acknowledged exclusions. Use `--fail-on ne
 
 The site at <https://cloud-exit-evidence.sociobot.in> includes a local sample at [/demo/](https://cloud-exit-evidence.sociobot.in/demo/). The sample opens with a report, uses only `demo:` browser storage, and is removed when you leave it.
 
-The browser sample does not upload file-list text or selected file details. It contacts no third-party service. The command-line tool has no network client and sends no usage data.
+The browser demo accepts no real file list or folder. It checks only bundled sample files and contacts no third-party service.
+
+Choose **Start for real** to leave demo storage and open the command-line setup. The command-line tool has no network client and sends no usage data.
 
 ## Develop and verify
 

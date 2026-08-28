@@ -16,20 +16,13 @@
     <header class="site-header"><a class="wordmark" href="/" aria-label="Cloud Exit Evidence home">CEE / 001</a><nav aria-label="Primary navigation"><a href="/">Home</a><a href="#sample-audit">Sample check</a><a href="/privacy/">Privacy</a></nav><span class="folio" aria-hidden="true">Sample record</span></header>
     <main id="main" tabindex="-1">
       <section class="demo-page-head" aria-labelledby="page-title"><p class="kicker">Sample file-copy check</p><h1 id="page-title">Check a sample offline copy.</h1><p>See missing files and exclusions in a local sample with known gaps.</p></section>
-      <aside class="demo-banner" aria-label="Demo mode"><p><strong>Demo — sample data, nothing is saved.</strong> This page does not read or change your real data.</p><div><button class="text-action" id="reset-demo" type="button">Reset demo</button><a class="text-action" href="/" id="start-real">Start for real</a></div></aside>
+      <aside class="demo-banner" aria-label="Demo mode"><p><strong>Demo — sample data, nothing is saved.</strong> This page uses only bundled sample details.</p><div><button class="text-action" id="reset-demo" type="button">Reset demo</button><a class="text-action" href="/#install" id="start-real">Start for real</a></div></aside>
       <section class="demo section-rule" id="sample-audit" aria-labelledby="demo-title">
-        <header class="section-heading demo-heading"><div><p class="section-number">§ 01 / Sample file-copy check</p><h2 id="demo-title">Sample gap report.</h2></div><p>The result is loaded first. Edit the file list below when you want to check another folder.</p></header>
+        <header class="section-heading demo-heading"><div><p class="section-number">§ 01 / Sample file-copy check</p><h2 id="demo-title">Sample gap report.</h2></div><p>This report uses bundled sample files. To check your drive, leave the demo and install the command-line tool.</p></header>
         <section class="report demo-report-first" id="report" aria-labelledby="report-title" aria-live="polite" tabindex="-1"><div class="report-empty" id="report-empty"><p class="stamp" aria-hidden="true">Loading sample</p><h3 id="report-title">Loading the sample report</h3></div><div id="report-results" hidden></div></section>
-        <div class="demo-layout demo-inputs">
-          <form id="audit-form" class="audit-form" novalidate>
-            <div class="field"><label for="manifest">File list</label><textarea id="manifest" name="manifest" rows="12" spellcheck="false" aria-describedby="manifest-help"></textarea><p id="manifest-help" class="field-help">JSON, CSV, or rclone JSON. This text stays in this tab.</p></div>
-            <fieldset><legend>Folder to compare</legend><label class="file-button" for="directory">Select a folder</label><input id="directory" name="directory" type="file" webkitdirectory multiple><p class="field-help" id="file-count">Sample folder loaded: 1 local file.</p></fieldset>
-            <div class="button-row"><button class="primary-action" type="submit">Check this file list</button><button class="text-action" id="load-sample" type="button">Load sample files</button></div><p class="form-error" id="form-error" role="alert" hidden></p>
-          </form>
-        </div>
       </section>
     </main>
-    <footer><p>Cloud Exit Evidence / Check an offline copy before relying on it.</p><nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-cloud-exit-evidence">Source</a><a href="https://sociobot.in">Built by Param Factory</a></nav><small>Build polish-4</small></footer>
+    <footer><p>Cloud Exit Evidence / Check an offline copy before relying on it.</p><nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-cloud-exit-evidence">Source</a><a href="https://sociobot.in">Built by Param Factory</a></nav><small>Build polish-5</small></footer>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

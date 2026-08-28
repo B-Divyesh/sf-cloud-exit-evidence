@@ -1,94 +1,34 @@
 import './styles.css';
-import { auditDemo, parseManifest, type LocalEntry } from './demo';
+import { auditDemo, type LocalEntry, type ParsedManifest } from './demo';
 import { focusHeadingAfterNavigation, markInternalNavigations } from './navigation';
 
-const form = document.querySelector<HTMLFormElement>('#audit-form');
-const manifestInput = document.querySelector<HTMLTextAreaElement>('#manifest');
-const directoryInput = document.querySelector<HTMLInputElement>('#directory');
-const errorOutput = document.querySelector<HTMLElement>('#form-error');
-const fileCount = document.querySelector<HTMLElement>('#file-count');
 const results = document.querySelector<HTMLElement>('#report-results');
 const empty = document.querySelector<HTMLElement>('#report-empty');
-let sampleFiles: LocalEntry[] | null = null;
 const isDemo = document.body.dataset.demo === 'true';
 
 if (!isDemo && new URLSearchParams(window.location.search).get('demo') === '1') {
   window.location.replace('/demo/');
 }
 
-const sampleManifest = JSON.stringify(
-  {
-    provider: 'Example cloud export',
-    files: [
-      { path: 'Documents/lease.pdf', size: 22, modified: '2026-08-18T09:00:00Z' },
-      { path: 'Photos/2026/birthday.webp', size: 84620, modified: '2026-08-20T12:00:00Z' },
-      { path: 'Documents/tax-return.pdf', size: 32100, modified: '2026-08-21T11:30:00Z' }
-    ],
-    exclusions: [{ path: 'Phone/Documents/**', reason: 'Android denied all-files access' }]
-  },
-  null,
-  2
-);
+const sampleManifest: ParsedManifest = {
+  files: [
+    { path: 'Documents/lease.pdf', size: 22, modified: '2026-08-18T09:00:00Z' },
+    { path: 'Photos/2026/birthday.webp', size: 84620, modified: '2026-08-20T12:00:00Z' },
+    { path: 'Documents/tax-return.pdf', size: 32100, modified: '2026-08-21T11:30:00Z' }
+  ],
+  exclusions: [{ path: 'Phone/Documents/**', reason: 'Android denied all-files access' }]
+};
 
-function loadSample(moveFocus = true) {
-  if (!manifestInput || !fileCount) return;
-  manifestInput.value = sampleManifest;
-  sampleFiles = [
-    { path: 'Documents/lease.pdf', size: 22, modified: Date.parse('2026-08-18T09:00:00Z') }
-  ];
-  fileCount.textContent = 'Sample folder loaded: 1 local file.';
-  hideError();
-  if (isDemo) localStorage.setItem('demo:cloud-exit-evidence', 'sample');
-  if (moveFocus) manifestInput.focus();
+const sampleFiles: LocalEntry[] = [
+  { path: 'Documents/lease.pdf', size: 22, modified: Date.parse('2026-08-18T09:00:00Z') }
+];
+
+function resetSample() {
+  localStorage.setItem('demo:cloud-exit-evidence', 'sample');
+  renderReport(auditDemo(sampleManifest, sampleFiles));
 }
 
-document.querySelector('#load-sample')?.addEventListener('click', () => loadSample());
-
-directoryInput?.addEventListener('change', () => {
-  sampleFiles = null;
-  if (fileCount) fileCount.textContent = `${directoryInput.files?.length ?? 0} local files selected.`;
-});
-
-function runAudit(moveFocus = !isDemo) {
-  if (!form) return;
-  hideError();
-  const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-  if (button) {
-    button.disabled = true;
-    button.textContent = 'Checking files…';
-  }
-  window.setTimeout(() => {
-    try {
-      const manifest = parseManifest(manifestInput?.value ?? '');
-      const localEntries = sampleFiles ?? filesFromInput(directoryInput?.files);
-      if (!localEntries.length) throw new Error('Select a folder or load the sample files.');
-      renderReport(auditDemo(manifest, localEntries), moveFocus);
-    } catch (error) {
-      showError(error instanceof Error ? error.message : 'The file-list check could not be completed.');
-    } finally {
-      if (button) {
-        button.disabled = false;
-        button.textContent = 'Check this file list';
-      }
-    }
-  }, isDemo ? 0 : 120);
-}
-
-form?.addEventListener('submit', (event) => {
-  event.preventDefault();
-  runAudit();
-});
-
-function filesFromInput(list?: FileList | null): LocalEntry[] {
-  if (!list) return [];
-  return [...list].map((file) => {
-    const path = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
-    const relative = path.includes('/') ? path.slice(path.indexOf('/') + 1) : path;
-    return { path: relative, size: file.size, modified: file.lastModified };
-  });
-}
-
-function renderReport(report: ReturnType<typeof auditDemo>, moveFocus: boolean) {
+function renderReport(report: ReturnType<typeof auditDemo>) {
   if (!results || !empty) return;
   const label = report.readiness === 'ready' ? 'Ready' : 'Not ready';
   const gapRows = report.findings
@@ -111,24 +51,13 @@ function renderReport(report: ReturnType<typeof auditDemo>, moveFocus: boolean) 
     </dl>
     <h4>Files needing attention</h4>
     <ul class="findings">${gapRows}${exclusionRows}</ul>
-    <p class="report-caveat">This browser check compares the supplied file list. It does not create or test a backup.</p>`;
+    <p class="report-caveat">This browser check compares a bundled file list. It does not create or test a backup.</p>`;
   empty.hidden = true;
   results.hidden = false;
-  if (moveFocus) results.focus({ preventScroll: true });
 }
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character] ?? character);
-}
-
-function showError(message: string) {
-  if (!errorOutput) return;
-  errorOutput.textContent = message;
-  errorOutput.hidden = false;
-}
-
-function hideError() {
-  if (errorOutput) errorOutput.hidden = true;
 }
 
 document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((button) => {
@@ -160,13 +89,8 @@ window.addEventListener('offline', updateNetworkState);
 updateNetworkState();
 
 if (isDemo) {
-  loadSample(false);
-  runAudit(false);
-  document.querySelector<HTMLButtonElement>('#reset-demo')?.addEventListener('click', () => {
-    localStorage.removeItem('demo:cloud-exit-evidence');
-    loadSample(false);
-    runAudit(false);
-  });
+  resetSample();
+  document.querySelector<HTMLButtonElement>('#reset-demo')?.addEventListener('click', resetSample);
   document.querySelector<HTMLAnchorElement>('#start-real')?.addEventListener('click', () => {
     localStorage.removeItem('demo:cloud-exit-evidence');
   });

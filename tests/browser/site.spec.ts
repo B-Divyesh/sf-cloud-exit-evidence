@@ -77,9 +77,72 @@ test('@claim:demo-isolation demo entry, reset, and exit preserve real state and 
   expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })))
     .toEqual({ demo: 'sample', real: 'keep' });
   await page.getByRole('link', { name: 'Start for real' }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/#install$/);
+  await expect(page.getByRole('heading', { name: 'Run the full check offline.' })).toBeVisible();
   expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })))
     .toEqual({ demo: null, real: 'keep' });
+});
+
+test('@claim:demo-sample-only demo exposes no real inputs, never reads injected file details, and changes only demo storage', async ({ page }) => {
+  await page.addInitScript(() => {
+    const target = window as Window & { __demoRealReads?: number };
+    target.__demoRealReads = 0;
+    const watch = (prototype: object, property: string) => {
+      const descriptor = Object.getOwnPropertyDescriptor(prototype, property);
+      if (!descriptor?.get) return;
+      Object.defineProperty(prototype, property, {
+        ...descriptor,
+        get() {
+          target.__demoRealReads = (target.__demoRealReads ?? 0) + 1;
+          return descriptor.get!.call(this);
+        }
+      });
+    };
+    watch(HTMLInputElement.prototype, 'files');
+    for (const property of ['name', 'size', 'lastModified', 'webkitRelativePath']) watch(File.prototype, property);
+    localStorage.setItem('real:cloud-exit-evidence', 'private-state');
+  });
+  await page.goto('/demo/');
+  await expect(page.locator('input, textarea, [contenteditable="true"]')).toHaveCount(0);
+  await expect(page.getByText('This page uses only bundled sample details.')).toBeVisible();
+  expect(readFileSync(join(process.cwd(), 'site', 'demo', 'index.html'), 'utf8')).not.toMatch(/<(?:input|textarea)\b|contenteditable/i);
+  expect(readFileSync(join(process.cwd(), 'site', 'src', 'main.ts'), 'utf8')).not.toMatch(/FileList|filesFromInput|directoryInput|manifestInput/);
+
+  await page.evaluate(() => {
+    const legacyForm = document.createElement('form');
+    legacyForm.id = 'audit-form';
+    const legacyList = document.createElement('textarea');
+    legacyList.id = 'manifest';
+    legacyList.value = '{"files":[{"path":"private-tax.pdf","size":7}]}';
+    const legacyFolder = document.createElement('input');
+    legacyFolder.id = 'directory';
+    legacyFolder.type = 'file';
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['private'], 'private-tax.pdf', { lastModified: 1 }));
+    legacyFolder.files = transfer.files;
+    legacyForm.append(legacyList, legacyFolder);
+    document.body.append(legacyForm);
+    legacyFolder.dispatchEvent(new Event('change', { bubbles: true }));
+    legacyForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  });
+  await page.waitForTimeout(150);
+  expect(await page.evaluate(() => (window as Window & { __demoRealReads?: number }).__demoRealReads)).toBe(0);
+  await expect(page.locator('#report')).not.toContainText('private-tax.pdf');
+  expect(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)))).toEqual({
+    'demo:cloud-exit-evidence': 'sample',
+    'real:cloud-exit-evidence': 'private-state'
+  });
+
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  expect(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)))).toEqual({
+    'demo:cloud-exit-evidence': 'sample',
+    'real:cloud-exit-evidence': 'private-state'
+  });
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page).toHaveURL(/\/#install$/);
+  expect(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)))).toEqual({
+    'real:cloud-exit-evidence': 'private-state'
+  });
 });
 
 test('@claim:free-to-use the site and command-line tool are free under MIT without a purchase path', async ({ page }) => {
@@ -97,7 +160,7 @@ test('@claim:browser-local browser demo does not upload data or call third parti
   const requests: string[] = [];
   page.on('request', (request) => requests.push(request.url()));
   await page.goto('/demo/');
-  await page.getByRole('button', { name: 'Check this file list' }).click();
+  await page.getByRole('button', { name: 'Reset demo' }).click();
   await expect(page.getByRole('heading', { name: 'Not ready' })).toBeVisible();
   expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
 });
@@ -126,21 +189,11 @@ test('@claim:offline-reload a landing-page visit makes the demo work offline', a
   await context.setOffline(false);
 });
 
-test('demo validation errors use the same plain language as its controls', async ({ page }) => {
+test('sample-only demo exposes no editable file workflow or legacy error terms', async ({ page }) => {
   await page.goto('/demo/');
-  const fileList = page.locator('#manifest');
-  const error = page.locator('#form-error');
-  await fileList.fill('');
-  await page.getByRole('button', { name: 'Check this file list' }).click();
-  await expect(error).toHaveText('Add a file list before checking.');
-  await fileList.fill('{not json');
-  await page.getByRole('button', { name: 'Check this file list' }).click();
-  await expect(error).toHaveText('This file list is not valid JSON. Check its commas and quotation marks.');
-  await page.locator('#directory').dispatchEvent('change');
-  await fileList.fill('{"files":[{"path":"Documents/lease.pdf","size":22}]}');
-  await page.getByRole('button', { name: 'Check this file list' }).click();
-  await expect(error).toHaveText('Select a folder or load the sample files.');
-  await expect(page.getByRole('button', { name: 'Checking files…' })).toHaveCount(0);
+  await expect(page.locator('#audit-form, #manifest, #directory, #form-error')).toHaveCount(0);
+  await expect(page.locator('main')).not.toContainText(/manifest|fixture|destination folder|run the audit/i);
+  await expect(page.getByRole('link', { name: 'Start for real' })).toHaveAttribute('href', '/#install');
 });
 
 test('landing shows the sample product before method and limitations sections', async ({ page }) => {

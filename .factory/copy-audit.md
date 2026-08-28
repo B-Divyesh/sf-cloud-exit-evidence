@@ -1,4 +1,4 @@
-# Landing copy audit — polish 4
+# Copy audit — polish 5
 
 Every visitor-facing landing sentence, heading, label, action, image alt, and footer line is at most 22 words. None use a banned marketing word. Functional promises map to a tagged entry in `.factory/claims.json`.
 
@@ -39,7 +39,7 @@ Every visitor-facing landing sentence, heading, label, action, image alt, and fo
 | 2 | label | Limits | Pass |
 | 6 | h2 | What this check does not do. | Pass |
 | 7 | sentence | It does not copy or restore files. | `cli-read-only` |
-| 10 | sentence | The browser sample checks your file list in this tab. | `browser-local` |
+| 11 | sentence | The browser demo checks only bundled sample files in this tab. | `demo-sample-only`, `browser-local` |
 | 3 | sentence | Keep versioned media. | Pass |
 | 3 | sentence | Test real restores. | Pass |
 | 2 | label | Command line | Pass |
@@ -59,16 +59,79 @@ Every visitor-facing landing sentence, heading, label, action, image alt, and fo
 | 6 | link | Read the source and file-list format | Pass |
 | 11 | footer | Cloud Exit Evidence / Check an offline copy before relying on it. | Pass |
 
-Controls audited separately: **CEE / 001**, **Demo**, **How it works**, **Install**, **Privacy**, **Copy install command**, **Copy demo command**, **Terms**, **Source**, **Built by Param Factory**, and **Build polish-4**. Every action names its result. The control labels contain no banned wording.
+Controls audited separately: **CEE / 001**, **Demo**, **How it works**, **Install**, **Privacy**, **Copy install command**, **Copy demo command**, **Terms**, **Source**, **Built by Param Factory**, and **Build polish-5**. Every action names its result. The control labels contain no banned wording.
 
-## Demo error states
+## Demo sandbox copy
 
-| Words | Error | Result |
+| Words | Text | Result |
 | ---: | --- | --- |
-| 6 | Add a file list before checking. | Uses the visible “file list” and “checking” terms. |
-| 12 | This file list is not valid JSON. Check its commas and quotation marks. | Names the input and the next correction. |
-| 9 | Select a folder or load the sample files. | Uses the visible folder and sample-file terms. |
-| 2 | Checking files… | Names the active work plainly. |
+| 5 | Check a sample offline copy. | Plain job headline. |
+| 12 | See missing files and exclusions in a local sample with known gaps. | `demo-sample-report` |
+| 6 | Demo — sample data, nothing is saved. | Required persistent sandbox label; `demo-isolation` |
+| 7 | This page uses only bundled sample details. | `demo-sample-only` |
+| 2 | Reset demo | `demo-isolation` |
+| 3 | Start for real | `demo-isolation` |
+| 3 | Sample gap report. | Direct result label. |
+| 6 | This report uses bundled sample files. | `demo-sample-only` |
+| 12 | To check your drive, leave the demo and install the command-line tool. | `demo-isolation` |
+| 4 | 3 items need attention. | `demo-sample-report` |
+| 7 | Name, size, and available date evidence match. | `demo-sample-report` |
+| 6 | Not found in the selected copy. | `demo-sample-report` |
+| 4 | Android denied all-files access. | `demo-sample-report` |
+| 8 | This browser check compares a bundled file list. | `demo-sample-only` |
+| 8 | It does not create or test a backup. | Scope statement. |
+
+The demo has no editable field, file picker, or input error state. The former manifest, fixture, destination, and audit error wording is no longer reachable.
+
+## README sentence audit
+
+Commands and structured examples are excluded. Every prose sentence is at most 22 words and contains no banned marketing word.
+
+| Words | Text | Claim / result |
+| ---: | --- | --- |
+| 11 | Check whether an offline cloud-file copy has the files you expect. | Plain job statement. |
+| 14 | For people keeping a fallback drive, it lists missing, old, changed, and excluded files. | `cli-formats-readiness` |
+| 10 | It compares a supplied file list with a local folder. | `cli-formats-readiness` |
+| 10 | It does not sign in, copy files, or restore files. | `cli-no-account`, `cli-read-only` |
+| 8 | Build the Rust command-line tool from this repository. | Install instruction. |
+| 5 | Try the bundled sample immediately. | `cli-demo` |
+| 11 | The command writes a sample folder in a new temporary directory. | `cli-demo` |
+| 9 | It prints two missing files and one open exclusion. | `cli-demo` |
+| 16 | Give the tool a JSON, CSV, or rclone JSON file list and an offline folder. | `cli-formats-readiness` |
+| 6 | Use JSON output in a script. | Documented instruction. |
+| 10 | Missing files make the default command exit with code 2. | `cli-exit-codes` |
+| 9 | Use `--acknowledge` only for an exclusion you have checked. | `cli-acknowledgement` |
+| 10 | Use `--redact-paths` to replace printed file paths with stable labels. | `cli-redaction` |
+| 13 | Set a passphrase outside the command line, then write an encrypted `.cee` report. | `encrypted-report` |
+| 11 | Saved reports are encrypted and need the supplied passphrase to decrypt. | `encrypted-report` |
+| 5 | Terminal output is not encrypted. | `encrypted-report` |
+| 5 | Protect or redirect it yourself. | Direct next action. |
+| 5 | JSON uses a `files` array. | `cli-formats-readiness` |
+| 6 | Each file needs a relative `path`. | `cli-validation-and-links` |
+| 8 | It can also include `size`, `modified`, and `sha256`. | `cli-formats-readiness` |
+| 4 | CSV headers are `path,size,modified,sha256,excluded,exclusion_reason`. | `cli-formats-readiness` |
+| 9 | rclone JSON lists use `Path`, `Size`, `ModTime`, and `IsDir`. | `cli-formats-readiness` |
+| 7 | Paths must stay inside the selected folder. | `cli-validation-and-links` |
+| 6 | Duplicate and escaping paths are rejected. | `duplicate-paths`, `cli-validation-and-links` |
+| 9 | Links are reported as unsafe and are never followed. | `cli-validation-and-links` |
+| 11 | `READY` means every listed file passed and no exclusion is open. | `cli-formats-readiness` |
+| 12 | `READY WITH EXCEPTIONS` means every file passed and listed exclusions were acknowledged. | `cli-acknowledgement` |
+| 12 | `NOT READY` means a file is missing, old, changed, unsafe, or unacknowledged. | CLI claim set. |
+| 5 | A passing check exits 0. | `cli-exit-codes` |
+| 6 | A failed readiness check exits 2. | `cli-exit-codes` |
+| 7 | Invalid input or file errors exit 3. | `cli-exit-codes` |
+| 8 | Use `--fail-on exceptions` to fail on acknowledged exclusions. | `cli-fail-on` |
+| 10 | Use `--fail-on never` to return 0 after any valid check. | `cli-fail-on` |
+| 10 | The site at `cloud-exit-evidence.sociobot.in` includes a local sample at `/demo/`. | `demo-sample-report` |
+| 18 | The sample opens with a report, uses only `demo:` browser storage, and is removed when you leave it. | `demo-sample-report`, `demo-isolation` |
+| 10 | The browser demo accepts no real file list or folder. | `demo-sample-only` |
+| 11 | It checks only bundled sample files and contacts no third-party service. | `demo-sample-only`, `browser-local` |
+| 12 | Choose Start for real to leave demo storage and open the command-line setup. | `demo-isolation` |
+| 12 | The command-line tool has no network client and sends no usage data. | `cli-no-network` |
+| 9 | `npm run build` writes the release binary and `dist/site/`. | `build-artifacts` |
+| 8 | Deploy that static directory with its `staticwebapp.config.json` file. | Deployment instruction. |
+| 1 | MIT. | `mit-license` |
+| 2 | See `LICENSE`. | `mit-license` |
 
 ## Terminology
 
@@ -76,6 +139,7 @@ Controls audited separately: **CEE / 001**, **Demo**, **How it works**, **Instal
 | --- | --- |
 | The comparison activity | check |
 | The result shown without setup | sample gap report |
+| Browser try-out boundary | demo / bundled sample |
 | Files expected from a provider | file list |
 | Physical destination | offline copy / folder |
 | Terminal program | command-line tool |

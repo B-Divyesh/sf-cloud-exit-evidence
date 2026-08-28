@@ -38,9 +38,9 @@ main, footer { width: min(1440px, 94vw); margin-inline: auto; }
 h1 { margin: 20px 0 32px; max-width: 13ch; font: 400 clamp(3rem, 7.5vw, 7rem)/.84 var(--display); letter-spacing: -.065em; }
 .hero-grid { display: grid; grid-template-columns: 3fr 6fr 3fr; align-items: end; gap: clamp(24px, 3vw, 48px); }
 .standfirst > p:first-child { margin: 0 0 28px; font: 400 clamp(1.15rem, 1.7vw, 1.55rem)/1.38 var(--display); }
-.primary-action, .file-button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 24px; border: 1px solid var(--ink); border-radius: 1px; padding: 11px 18px; background: var(--ink); color: var(--sheet); font-weight: 800; text-decoration: none; cursor: pointer; }
-.primary-action:hover, .file-button:hover { background: var(--proof); color: var(--sheet); border-color: var(--proof); }
-.primary-action:active, .file-button:active { transform: translateY(1px); }
+.primary-action { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 24px; border: 1px solid var(--ink); border-radius: 1px; padding: 11px 18px; background: var(--ink); color: var(--sheet); font-weight: 800; text-decoration: none; cursor: pointer; }
+.primary-action:hover { background: var(--proof); color: var(--sheet); border-color: var(--proof); }
+.primary-action:active { transform: translateY(1px); }
 .primary-action:disabled { cursor: wait; opacity: .65; }
 .small-note { margin: 24px 0 0; color: var(--ink-soft); font-size: 14px; }
 .action-note { margin: 10px 0 0; color: var(--ink-soft); font-size: 14px; }
@@ -66,19 +66,8 @@ h3 { font: 400 1.7rem/1.1 var(--display); }
 .step { font: 700 12px/1 var(--mono); }
 .demo-heading { grid-template-columns: 8fr 4fr; }
 .demo-heading > p { margin: 30px 0 0; max-width: 45ch; }
-.demo-layout { display: grid; grid-template-columns: 6fr 6fr; gap: clamp(32px, 5vw, 80px); align-items: start; }
-.audit-form { display: grid; gap: 32px; }
-.field label, legend { display: block; margin-bottom: 10px; font: 700 1rem/1 var(--working); letter-spacing: .04em; text-transform: uppercase; }
-textarea { width: 100%; min-height: 240px; resize: vertical; border: 1px solid var(--ink); border-radius: 0; padding: 16px; background: var(--sheet); color: var(--ink); font: 14px/1.5 var(--mono); }
-fieldset { margin: 0; padding: 0; border: 0; }
-input[type='file'] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
-input[type='file']:focus-visible + * { outline: 3px solid var(--proof); }
-.file-button:has(+ input[type='file']:focus-visible) { outline: 3px solid var(--proof); outline-offset: 4px; }
-.field-help { margin: 8px 0 0; color: var(--ink-soft); font-size: 14px; }
-.button-row { display: flex; flex-wrap: wrap; gap: 12px; }
 .text-action, .copy-button { min-width: 44px; min-height: 44px; border: 1px solid var(--ink); border-radius: 0; padding: 8px 14px; background: transparent; color: var(--ink); cursor: pointer; font-weight: 700; }
 .text-action:hover, .copy-button:hover { background: var(--ink); color: var(--sheet); }
-.form-error { margin: 0; border-left: 5px solid var(--danger); padding: 12px 16px; background: var(--sheet); color: var(--danger); font-weight: 700; }
 .report { min-height: 520px; border: 1px solid var(--ink); background: var(--sheet); box-shadow: 10px 10px 0 rgba(23, 23, 20, .12); }
 .report-empty { padding: clamp(32px, 6vw, 80px); }
 .report-empty h3 { margin: 32px 0 12px; }
@@ -148,7 +137,6 @@ footer small { color: var(--ink-soft); white-space: nowrap; }
   .front-note { grid-column: 1 / -1; }
   .method-list { margin-left: 0; }
   .limitations-copy { margin-left: 0; }
-  .demo-layout { grid-template-columns: 1fr; }
   .report { min-height: 360px; }
 }
 
@@ -196,12 +184,10 @@ footer small { color: var(--ink-soft); white-space: nowrap; }
   .demo-report-first .finding { padding: 8px 0; }
   .demo-report-first .finding small { display: none; }
   .demo-report-first .report-caveat { display: none; }
-  .demo-inputs { margin-top: 32px; }
 }
 
 @media (max-width: 440px) {
   .site-header nav { gap: 8px; }
-  .button-row > * { width: 100%; }
   .command { grid-template-columns: 1fr; }
   .command .copy-button { border-left: 0; border-top: 1px solid var(--sheet); }
   .hero-figure figcaption { display: block; }
