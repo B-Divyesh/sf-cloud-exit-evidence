@@ -1,4 +1,27 @@
 //! Provider-neutral evidence for deciding whether a physical cloud-file copy is usable.
+//!
+//! The binary is the primary interface, while the library keeps parsing and audit logic reusable:
+//!
+//! ```no_run
+//! use cloud_exit_evidence::audit::{audit, AuditOptions};
+//! use cloud_exit_evidence::manifest::read_manifest;
+//! use std::path::Path;
+//!
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! let manifest = read_manifest(Path::new("cloud-export.json"))?;
+//! let report = audit(
+//!     &manifest,
+//!     Path::new("/media/offline-copy"),
+//!     &AuditOptions {
+//!         stale_tolerance_seconds: 2,
+//!         acknowledgements: vec![],
+//!         acknowledgement_note: None,
+//!     },
+//! )?;
+//! println!("{:?}", report.readiness);
+//! # Ok(())
+//! # }
+//! ```
 
 pub mod audit;
 pub mod crypto;

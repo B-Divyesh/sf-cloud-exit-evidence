@@ -1,5 +1,5 @@
 const CACHE = 'cee-shell-v1';
-const SHELL = ['/', '/privacy/', '/terms/', '/evidence-ledger.webp'];
+const SHELL = ['/', '/privacy/', '/terms/', '/evidence-ledger.webp', '/evidence-ledger-mobile.webp'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));

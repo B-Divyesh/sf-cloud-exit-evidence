@@ -12,7 +12,7 @@
     <a class="skip-link" href="#main">Skip to main content</a>
     <div class="offline-notice" id="offline-notice" role="status" hidden>You are offline. The demo still runs locally in this tab.</div>
     <header class="site-header">
-      <a class="wordmark" href="/" aria-label="Cloud Exit Evidence home">CEE / 001</a>
+      <a class="wordmark" href="/" aria-label="CEE / 001, Cloud Exit Evidence home">CEE / 001</a>
       <nav aria-label="Primary navigation">
         <a href="#method">Method</a>
         <a href="#demo">Local demo</a>
@@ -32,7 +32,7 @@
             <p class="small-note"><strong>Local by construction.</strong> No login, upload, tracking, or cloud credentials.</p>
           </div>
           <figure class="hero-figure">
-            <img src="/evidence-ledger.webp" width="1440" height="960" fetchpriority="high" alt="An archival ledger holding a physical drive beside a cloud-shaped hole cut through the paper">
+            <img src="/evidence-ledger.webp" srcset="/evidence-ledger-mobile.webp 720w, /evidence-ledger.webp 1440w" sizes="(max-width: 700px) calc(100vw - 40px), (max-width: 900px) 63vw, 47vw" width="1440" height="960" fetchpriority="high" alt="An archival ledger holding a physical drive beside a cloud-shaped hole cut through the paper">
             <figcaption><span>Exhibit A.</span> A copied file is not evidence of a complete copy.</figcaption>
           </figure>
           <aside class="front-note" aria-label="Important distinction">
@@ -115,8 +115,8 @@
           <div>
             <p class="lede">One open-source Rust binary. No daemon. No account. No telemetry.</p>
             <div class="command" aria-label="Installation command">
-              <code tabindex="0">cargo install cloud-exit-evidence</code>
-              <button class="copy-button" type="button" data-copy="cargo install cloud-exit-evidence">Copy</button>
+              <code tabindex="0">cargo install --git https://github.com/B-Divyesh/sf-cloud-exit-evidence cloud-exit-evidence</code>
+              <button class="copy-button" type="button" data-copy="cargo install --git https://github.com/B-Divyesh/sf-cloud-exit-evidence cloud-exit-evidence">Copy</button>
             </div>
             <div class="command" aria-label="Audit command">
               <code tabindex="0">cloud-exit-evidence audit --manifest export.json --destination /media/offline</code>

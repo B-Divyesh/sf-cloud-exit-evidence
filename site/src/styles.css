@@ -49,7 +49,7 @@ h1 { margin: 20px 0 32px; max-width: 13ch; font: 400 clamp(3rem, 7.5vw, 7rem)/.8
 .hero-figure figcaption span { color: var(--ink); font-weight: 800; text-transform: uppercase; }
 .front-note { align-self: center; position: relative; border-top: 4px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 20px 0; }
 .front-note p { margin: 0; }
-.proof-mark { position: absolute; right: 0; top: -47px; color: var(--proof); font: 60px/1 var(--display); transform: rotate(-9deg); }
+.proof-mark { position: absolute; right: 0; top: -47px; color: var(--proof); font: 60px/1 var(--display); transform: rotate(-9deg); animation: proof-in 180ms ease-out both; }
 .section-rule { border-top: 4px double var(--ink); padding: 48px 0 80px; }
 .section-heading { display: grid; grid-template-columns: 3fr 9fr; gap: clamp(24px, 3vw, 48px); align-items: start; margin-bottom: 48px; }
 h2 { max-width: 16ch; margin: 0; font: 400 clamp(2.3rem, 5vw, 5rem)/.95 var(--display); letter-spacing: -.045em; }
@@ -81,6 +81,7 @@ input[type='file']:focus-visible + * { outline: 3px solid var(--proof); }
 .report-empty h3 { margin: 32px 0 12px; }
 .stamp { width: fit-content; margin: 0; border: 3px double var(--proof); padding: 7px 10px; color: var(--proof); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; transform: rotate(-2deg); }
 .report-header { padding: 32px; border-bottom: 4px double var(--ink); }
+#report-results:not([hidden]) .report-header { animation: report-in 220ms ease-out both; }
 .report-header h3 { margin: 12px 0 8px; font-size: clamp(2.6rem, 5vw, 4.8rem); text-transform: uppercase; }
 .report-header p:last-child { margin: 0; }
 .status--not-ready { color: var(--danger); }
@@ -110,6 +111,9 @@ input[type='file']:focus-visible + * { outline: 3px solid var(--proof); }
 .edition-notes dd { margin: 0; }
 .source-link { margin: 40px 0 0 58.333%; }
 footer { min-height: 120px; border-top: 1px solid var(--ink); display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 13px; }
+
+@keyframes proof-in { from { opacity: 0; transform: translateY(-5px) rotate(-9deg); } }
+@keyframes report-in { from { opacity: 0; transform: translateY(-6px); } }
 
 .legal-main { max-width: 780px; padding: 72px 0 96px; }
 .legal-main h1 { max-width: none; font-size: clamp(3rem, 8vw, 6rem); }
