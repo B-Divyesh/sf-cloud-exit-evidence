@@ -1,0 +1,242 @@
+{
+  "checkedAt": "2026-08-28T17:05:17.533Z",
+  "deploymentId": "2a4b45df-c2ad-45f3-9508-5520a546d426",
+  "base": "https://cloud-exit-evidence.sociobot.in",
+  "routes": {
+    "/": {
+      "status": 200,
+      "title": "Cloud Exit Evidence — Check an offline copy",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "privacyLinks": 1,
+      "termsLinks": 1,
+      "frontNoteTag": "DIV",
+      "duplicateIds": [],
+      "axeViolations": [],
+      "consoleErrors": []
+    },
+    "/demo/": {
+      "status": 200,
+      "title": "Demo — Cloud Exit Evidence",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "privacyLinks": 1,
+      "termsLinks": 1,
+      "frontNoteTag": null,
+      "duplicateIds": [],
+      "axeViolations": [],
+      "consoleErrors": []
+    },
+    "/privacy/": {
+      "status": 200,
+      "title": "Privacy — Cloud Exit Evidence",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "privacyLinks": 1,
+      "termsLinks": 1,
+      "frontNoteTag": null,
+      "duplicateIds": [],
+      "axeViolations": [],
+      "consoleErrors": []
+    },
+    "/terms/": {
+      "status": 200,
+      "title": "Terms — Cloud Exit Evidence",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "privacyLinks": 1,
+      "termsLinks": 1,
+      "frontNoteTag": null,
+      "duplicateIds": [],
+      "axeViolations": [],
+      "consoleErrors": []
+    },
+    "/missing-polish-6": {
+      "status": 404,
+      "title": "Not found — Cloud Exit Evidence",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "privacyLinks": 1,
+      "termsLinks": 1,
+      "frontNoteTag": null,
+      "duplicateIds": [],
+      "axeViolations": [],
+      "consoleErrors": []
+    }
+  },
+  "exits": {
+    "wordmark": {
+      "url": "https://cloud-exit-evidence.sociobot.in/",
+      "storage": {
+        "demo": null,
+        "real": "keep"
+      }
+    },
+    "Home": {
+      "url": "https://cloud-exit-evidence.sociobot.in/",
+      "storage": {
+        "demo": null,
+        "real": "keep"
+      }
+    },
+    "Privacy": {
+      "url": "https://cloud-exit-evidence.sociobot.in/privacy/",
+      "storage": {
+        "demo": null,
+        "real": "keep"
+      }
+    },
+    "Terms": {
+      "url": "https://cloud-exit-evidence.sociobot.in/terms/",
+      "storage": {
+        "demo": null,
+        "real": "keep"
+      }
+    },
+    "Start for real": {
+      "url": "https://cloud-exit-evidence.sociobot.in/#install",
+      "storage": {
+        "demo": null,
+        "real": "keep"
+      }
+    }
+  },
+  "requests": [
+    "https://cloud-exit-evidence.sociobot.in"
+  ],
+  "mobile": {
+    "bounds": {
+      "result": {
+        "x": 37,
+        "y": 481.1332702636719,
+        "width": 316,
+        "height": 44.000030517578125
+      },
+      "photo gap": {
+        "x": 37,
+        "y": 694.78125,
+        "width": 316,
+        "height": 19.59375
+      },
+      "tax gap": {
+        "x": 37,
+        "y": 751.421875,
+        "width": 316,
+        "height": 19.59375
+      },
+      "exclusion": {
+        "x": 37,
+        "y": 808.0625,
+        "width": 316,
+        "height": 19.59375
+      }
+    },
+    "targets": [
+      {
+        "name": "Skip to main content",
+        "width": 176.96875,
+        "height": 48.796875,
+        "left": 8,
+        "right": 184.96875
+      },
+      {
+        "name": "Cloud Exit Evidence home",
+        "width": 350,
+        "height": 44,
+        "left": 20,
+        "right": 370
+      },
+      {
+        "name": "Home",
+        "width": 44,
+        "height": 44,
+        "left": 20,
+        "right": 64
+      },
+      {
+        "name": "Sample check",
+        "width": 107.53125,
+        "height": 44,
+        "left": 133.640625,
+        "right": 241.171875
+      },
+      {
+        "name": "Privacy",
+        "width": 59.1875,
+        "height": 44,
+        "left": 310.8125,
+        "right": 370
+      },
+      {
+        "name": "Reset demo",
+        "width": 116.703125,
+        "height": 44,
+        "left": 20,
+        "right": 136.703125
+      },
+      {
+        "name": "Start for real",
+        "width": 121.140625,
+        "height": 44,
+        "left": 148.703125,
+        "right": 269.84375
+      },
+      {
+        "name": "Privacy",
+        "width": 44,
+        "height": 44,
+        "left": 20,
+        "right": 64
+      },
+      {
+        "name": "Terms",
+        "width": 44,
+        "height": 44,
+        "left": 84,
+        "right": 128
+      },
+      {
+        "name": "Source",
+        "width": 44,
+        "height": 44,
+        "left": 148,
+        "right": 192
+      },
+      {
+        "name": "Built by Param Factory",
+        "width": 131.5,
+        "height": 44,
+        "left": 212,
+        "right": 343.5
+      }
+    ],
+    "horizontalOverflow": false,
+    "errors": []
+  },
+  "offline": {
+    "banner": true,
+    "result": true
+  },
+  "shortcut": {
+    "url": "https://cloud-exit-evidence.sociobot.in/demo/",
+    "banner": true
+  },
+  "routing": {
+    "focused": "Check a sample offline copy.",
+    "afterBack": {
+      "demo": null,
+      "real": "keep",
+      "focused": "Check your offline cloud copy."
+    },
+    "afterForward": {
+      "demo": "sample",
+      "real": "keep",
+      "resultVisible": true
+    }
+  }
+}
