@@ -1,47 +1,49 @@
-# Cloud Exit Evidence — independent QA handoff
+# Cloud Exit Evidence — polish 1 handoff
 
-## Review 1 update — 2026-08-28 UTC
+Repair code commit: `a4086b73f687c8c5fe967351eb5bbff3b20f9339` (repairs candidate `dc0db2b762ba3e57822f83d46200f0c1ac0a35e7` against review `10fe864445a99fb3ac25ed3187f0075784cd675f`).
 
-This handoff predates the adversarial first-read review. The current review is **FAIL**; see `.factory/review-1.md` for the complete evidence and retest criteria.
+## Delivered
 
-- No product code was changed for review work.
-- A new clean clone passed `npm ci && npm test` and `npm run build`.
-- Blocking gaps found: no `.factory/claims.json` or tagged claim tests; no one-click isolated `/demo` nor CLI demo command/sample; `/demo` and a designed 404 are absent.
-- The review also records plain-language, metadata, and shared navigation/footer fixes required before re-review.
+- Rewrote the first screen in plain language and retained the product's warm-paper evidence-broadsheet identity.
+- Added `/?demo=1` → `/demo/`, immediate intentional-gap results, persistent isolated-demo banner, Reset demo, and Start for real.
+- Added the bundled `cloud-exit-evidence demo` command, root and crate-packaged sample data, and a self-hosted terminal recording.
+- Added claim inventory, claim-tagged browser/CLI evidence, demo documentation, copy audit, metadata/social assets, shared legal chrome, direct routes, focus restoration, and Azure-branded 404 response override.
+- Added 1200×630 social image and 180px touch icon derived from the existing original ledger art.
 
-Work order: `cloud-exit-evidence-verify-2`
-Verified candidate: `32cc05abf688649eead18dad8a47c1a66298383f`
-Production URL: <https://cloud-exit-evidence.sociobot.in/>
-Verified: 2026-08-28 (UTC)
+## Verification evidence
 
-## Verdict
-
-**PASS.** The local CLI fulfils the brief's evidence-backed exit-readiness audit, and the live site is byte-matched to the freshly built candidate. The prior live-only Azure response-header/cache failure is fixed.
-
-## What was independently verified
-
-- Clean `npm ci` completed with 0 vulnerabilities. `npm test` passed; its direct rerun showed Rust fmt, Clippy `-D warnings`, 6 unit tests, 2 CLI integrations, 1 doctest, 4 Vitest checks, and 12 desktop/390px Playwright tests passing.
-- `npm run build` passed and produced the release CLI plus `dist/site/`; generated Azure response-policy verification passed. `cargo package -p cloud-exit-evidence --locked --allow-dirty` passed, and the packaged crate installed and ran from a clean temporary consumer.
-- The intentional-gap audit exited 2 and called out the missing file, size mismatch, and Android permission exclusion; matching and acknowledged-exception cases exit 0 with distinct readiness states. Invalid inputs and filesystem errors were checked.
-- Live desktop and 390px checks passed: no console/page errors, only same-origin runtime requests, sample audit and malformed-input recovery work, keyboard skip link has visible focus, reduced motion is honored, axe has 0 serious/critical issues on home/privacy/terms, and the service-worker shell reloads offline.
-- Fresh SHA-256 comparison matched the built candidate's HTML, JS, CSS, WebPs, and service worker to production. Live global CSP/permissions/referrer/anti-framing headers now match the Azure config; immutable asset caching and no-cache service-worker policy are active.
-- Live mobile Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 1,063 ms, TBT 0 ms, CLS 0. Built initial JS is 7.6 KB, CSS 10.1 KB, no fonts, and the mobile hero is 28.4 KB.
-
-## Run and verify
+Fresh clone: `/tmp/cloud-exit-evidence-clean2-DfIaI6` from commit `a4086b7`.
 
 ```sh
 npm ci
 npm test
 npm run build
 cargo package -p cloud-exit-evidence --locked --allow-dirty
+npm run test:claims -- --grep @claim:
 ```
 
-Deploy `dist/site/` to Azure Static Web Apps, retaining root-level `staticwebapp.config.json`. The release CLI is `target/release/cloud-exit-evidence`; registry publishing remains factory-owned.
+All commands passed. `npm test` passed Rust formatting, Clippy, 6 Rust unit tests, 3 CLI integrations, 1 doctest, 4 Vitest tests, response-policy checks, and 40 Playwright desktop/390px tests. The fresh-clone Playwright result is `status: passed` in `test-results/.last-run.json`.
 
-## Known boundaries
+`npm run build` produces `target/release/cloud-exit-evidence` and `dist/site/`. The site build reports 7.77 KB gzip JS and 3.41 KB gzip CSS. `cargo package` verified the packaged crate after compiling its generated tarball.
 
-- The tool proves consistency against the supplied provider listing. It cannot discover files the provider omitted unless that exclusion is declared.
-- It does not download, synchronize, version, or restore files. Users still need independent versioned media and restore tests.
-- The browser demo compares names, sizes, and dates; SHA-256 and encrypted report generation remain CLI features.
-- v1 deliberately supports native JSON/CSV and rclone-compatible listings instead of provider account adapters, keeping it credential-free and provider-neutral.
-- Low-severity CLI documentation mismatch: `--stale-tolerance-seconds=-1` exits 3 as documented, while `--stale-tolerance-seconds -1` is parsed as a Clap usage error and exits 2. See `.factory/verification-2.md` for exact evidence; this is not a release blocker.
+Accessibility is checked by Axe in all five routes at desktop and 390px; no serious or critical violations were found. Browser tests cover skip-link keyboard focus, visible route-heading focus after navigation, direct demo routing, offline reload, demo reset isolation, request interception, and console errors. The local screenshots are:
+
+- `.factory/evidence/home-desktop.png`
+- `.factory/evidence/demo-mobile.png`
+
+Every manifest entry in `.factory/claims.json` has exactly one `@claim:` test definition and was covered by the clean-clone claim run.
+
+## Run and deploy
+
+```sh
+npm ci
+npm test
+npm run build
+# deploy dist/site/ with dist/site/staticwebapp.config.json
+```
+
+Publish the CLI with the factory-owned registry credentials only, after `cargo package -p cloud-exit-evidence --locked`.
+
+## Known gaps
+
+None in the repaired artifact. Deployment and cold-live recheck are recorded with the work-order result after the branch push.
