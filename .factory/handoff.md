@@ -15,9 +15,11 @@ Repair commit: `05bb256fc3c81f51682ff6bb5775e8445b54f3df`.
 - `npm test` — pass: Rust fmt, clippy, unit/integration tests, site unit tests, static response policy, Playwright desktop/mobile route/a11y/privacy/offline tests.
 - `npm run build` — pass; `dist/site/` produced. Initial site JS is 7.39 kB gzip and CSS is 3.61 kB gzip.
 - `npm run test:claims -- --grep @claim:` — pass; all 18 claim entries run their tagged observable test.
+- Fresh clone `/tmp/cloud-exit-evidence-polish2.ovQx5S`: `npm ci`, every individual command from `.factory/claims.json`, `npm test`, `npm run build`, and `cargo package -p cloud-exit-evidence --locked --allow-dirty` all passed.
 - `cargo package -p cloud-exit-evidence --locked --allow-dirty` — ready-to-publish package check.
 - Browser axe checks in `tests/browser/site.spec.ts` report no serious or critical findings for every route.
 - Evidence: `.factory/evidence/demo-first-screen-390.png` (local) and `.factory/evidence/live-polish-2-demo-mobile.png` (cold live site).
+- Live mobile Lighthouse: Performance 100, Accessibility 100, LCP 1.109 s, CLS 0; report at `.factory/evidence/lighthouse-mobile.json`.
 - Cold live recheck passed at `https://cloud-exit-evidence.sociobot.in/`: home/title, one-click demo, `?demo=1`, 390px first-screen report, banner/reset sandbox, forward heading focus under `no-referrer`, legal routes, product 404, and no console errors.
 
 ## Run and deploy
