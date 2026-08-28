@@ -1,0 +1,11 @@
+{
+  "origin": "https://cloud-exit-evidence.sociobot.in",
+  "checks": [
+    "landing-first offline demo",
+    "?demo=1 direct route",
+    "live structure and heading focus",
+    "live demo error copy",
+    "live routes, 404, metadata, Axe, privacy"
+  ],
+  "consoleErrors": []
+}
