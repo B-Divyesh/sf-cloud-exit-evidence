@@ -5,6 +5,7 @@ import { focusHeadingAfterNavigation, markInternalNavigations } from './navigati
 const results = document.querySelector<HTMLElement>('#report-results');
 const empty = document.querySelector<HTMLElement>('#report-empty');
 const isDemo = document.body.dataset.demo === 'true';
+const demoStorageKey = 'demo:cloud-exit-evidence';
 
 if (!isDemo && new URLSearchParams(window.location.search).get('demo') === '1') {
   window.location.replace('/demo/');
@@ -24,8 +25,12 @@ const sampleFiles: LocalEntry[] = [
 ];
 
 function resetSample() {
-  localStorage.setItem('demo:cloud-exit-evidence', 'sample');
+  localStorage.setItem(demoStorageKey, 'sample');
   renderReport(auditDemo(sampleManifest, sampleFiles));
+}
+
+function discardDemoState() {
+  localStorage.removeItem(demoStorageKey);
 }
 
 function renderReport(report: ReturnType<typeof auditDemo>) {
@@ -91,8 +96,9 @@ updateNetworkState();
 if (isDemo) {
   resetSample();
   document.querySelector<HTMLButtonElement>('#reset-demo')?.addEventListener('click', resetSample);
-  document.querySelector<HTMLAnchorElement>('#start-real')?.addEventListener('click', () => {
-    localStorage.removeItem('demo:cloud-exit-evidence');
+  window.addEventListener('pagehide', discardDemoState);
+  window.addEventListener('pageshow', () => {
+    if (localStorage.getItem(demoStorageKey) === null) resetSample();
   });
 }
 

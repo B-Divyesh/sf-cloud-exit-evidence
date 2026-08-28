@@ -1,4 +1,4 @@
-# Copy audit — polish 5
+# Copy audit — polish 6
 
 Every visitor-facing landing sentence, heading, label, action, image alt, and footer line is at most 22 words. None use a banned marketing word. Functional promises map to a tagged entry in `.factory/claims.json`.
 
@@ -59,7 +59,7 @@ Every visitor-facing landing sentence, heading, label, action, image alt, and fo
 | 6 | link | Read the source and file-list format | Pass |
 | 11 | footer | Cloud Exit Evidence / Check an offline copy before relying on it. | Pass |
 
-Controls audited separately: **CEE / 001**, **Demo**, **How it works**, **Install**, **Privacy**, **Copy install command**, **Copy demo command**, **Terms**, **Source**, **Built by Param Factory**, and **Build polish-5**. Every action names its result. The control labels contain no banned wording.
+Controls audited separately: **CEE / 001**, **Demo**, **How it works**, **Install**, **Privacy**, **Copy install command**, **Copy demo command**, **Terms**, **Source**, **Built by Param Factory**, and **Build polish-6**. Every action names its result. The control labels contain no banned wording.
 
 ## Demo sandbox copy
 
@@ -123,7 +123,7 @@ Commands and structured examples are excluded. Every prose sentence is at most 2
 | 8 | Use `--fail-on exceptions` to fail on acknowledged exclusions. | `cli-fail-on` |
 | 10 | Use `--fail-on never` to return 0 after any valid check. | `cli-fail-on` |
 | 10 | The site at `cloud-exit-evidence.sociobot.in` includes a local sample at `/demo/`. | `demo-sample-report` |
-| 18 | The sample opens with a report, uses only `demo:` browser storage, and is removed when you leave it. | `demo-sample-report`, `demo-isolation` |
+| 18 | The sample opens with a report, uses only `demo:` browser storage, and is removed when you leave it. | `demo-sample-report`, `demo-isolation` (all exits) |
 | 10 | The browser demo accepts no real file list or folder. | `demo-sample-only` |
 | 11 | It checks only bundled sample files and contacts no third-party service. | `demo-sample-only`, `browser-local` |
 | 12 | Choose Start for real to leave demo storage and open the command-line setup. | `demo-isolation` |

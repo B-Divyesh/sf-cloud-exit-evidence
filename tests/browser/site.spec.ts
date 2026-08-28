@@ -19,21 +19,62 @@ function expectStatus(result: ReturnType<typeof runCli>, expected: number) {
   expect(result.status, `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`).toBe(expected);
 }
 
-for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
-  test(`${path} has semantic structure, metadata, and no serious accessibility violations`, async ({ page }) => {
+const routeExpectations = [
+  { path: '/', title: 'Cloud Exit Evidence — Check an offline copy', canonical: 'https://cloud-exit-evidence.sociobot.in/' },
+  { path: '/demo/', title: 'Demo — Cloud Exit Evidence', canonical: 'https://cloud-exit-evidence.sociobot.in/demo/' },
+  { path: '/privacy/', title: 'Privacy — Cloud Exit Evidence', canonical: 'https://cloud-exit-evidence.sociobot.in/privacy/' },
+  { path: '/terms/', title: 'Terms — Cloud Exit Evidence', canonical: 'https://cloud-exit-evidence.sociobot.in/terms/' },
+  { path: '/404.html', title: 'Not found — Cloud Exit Evidence', canonical: 'https://cloud-exit-evidence.sociobot.in/404' }
+];
+
+for (const route of routeExpectations) {
+  test(`${route.path} has exact metadata, shared structure, and zero accessibility violations`, async ({ page }) => {
     const consoleErrors: string[] = [];
     page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
-    await page.goto(path);
+    await page.goto(route.path);
+    await expect(page).toHaveTitle(route.title);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page.locator('main')).toHaveCount(1);
     await expect(page.locator('h1')).toHaveCount(1);
-    await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
-    await expect(page.locator('meta[property="og:title"]')).toHaveCount(1);
+    await expect(page.locator('body > header, body > footer')).toHaveCount(2);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', route.canonical);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /^.{1,155}$/);
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', route.title);
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute('content', route.title);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', 'https://cloud-exit-evidence.sociobot.in/social-card.webp');
+    await expect(page.locator('link[rel="icon"], link[rel="apple-touch-icon"]')).toHaveCount(2);
+    await expect(page.locator('footer a[href="/privacy/"]')).toHaveCount(1);
+    await expect(page.locator('footer a[href="/terms/"]')).toHaveCount(1);
+    const headingLevels = await page.locator('h1, h2, h3, h4, h5, h6').evaluateAll((headings) => headings.map((heading) => Number(heading.tagName.slice(1))));
+    expect(headingLevels[0]).toBe(1);
+    for (let index = 1; index < headingLevels.length; index += 1) {
+      expect(headingLevels[index] - headingLevels[index - 1], `${route.path} skips a heading level`).toBeLessThanOrEqual(1);
+    }
     const results = await new AxeBuilder({ page }).analyze();
-    expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([]);
+    expect(results.violations).toEqual([]);
     expect(consoleErrors).toEqual([]);
   });
 }
+
+test('landing first screen states the job, audience, sample result, privacy, offline use, and price', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your offline cloud copy.');
+  await expect(page.getByText('For people keeping a fallback drive, find missing and outdated cloud files before relying on it.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Try it with sample data' })).toHaveAttribute('href', '/demo/');
+  await expect(page.getByText('Shows a sample gap report right away.')).toBeVisible();
+  await expect(page.locator('.plain-facts li')).toHaveText(['No uploads', 'Demo works offline after first visit', 'Free under MIT']);
+});
+
+test('reduced-motion users receive the same content without animation', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Check your offline cloud copy.' })).toBeVisible();
+  const motion = await page.locator('.proof-mark').evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { animation: style.animationName, transition: style.transitionDuration, transform: style.transform };
+  });
+  expect(motion).toEqual({ animation: 'none', transition: '0s', transform: 'none' });
+});
 
 test('@claim:demo-sample-report direct demo loads an intentional-gap report', async ({ page }) => {
   await page.goto('/demo/');
@@ -67,7 +108,7 @@ test('the documented ?demo=1 shortcut enters the isolated demo route', async ({ 
   await expect(page.getByText('Demo — sample data, nothing is saved.')).toBeVisible();
 });
 
-test('@claim:demo-isolation demo entry, reset, and exit preserve real state and discard only demo state', async ({ page }) => {
+test('@claim:demo-isolation demo entry, reset, and every exit preserve real state and discard only demo state', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('real:cloud-exit-evidence', 'keep'));
   await page.goto('/demo/');
   expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })))
@@ -83,6 +124,32 @@ test('@claim:demo-isolation demo entry, reset, and exit preserve real state and 
   await expect.poll(async () => (await installHeading.boundingBox())?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(844);
   expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })))
     .toEqual({ demo: null, real: 'keep' });
+
+  for (const exit of [
+    { name: 'wordmark', selector: '.wordmark', url: /\/$/ },
+    { name: 'Home', selector: 'header nav a[href="/"]', url: /\/$/ },
+    { name: 'Privacy', selector: 'header nav a[href="/privacy/"]', url: /\/privacy\/$/ },
+    { name: 'Terms', selector: 'footer a[href="/terms/"]', url: /\/terms\/$/ }
+  ]) {
+    await page.goto('/demo/');
+    await expect(page.getByRole('heading', { name: 'Not ready' })).toBeVisible();
+    await page.locator(exit.selector).click();
+    await expect(page, `${exit.name} reaches its destination`).toHaveURL(exit.url);
+    expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })), `${exit.name} clears only demo state`)
+      .toEqual({ demo: null, real: 'keep' });
+  }
+
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Demo', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Not ready' })).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })), 'Back clears only demo state')
+    .toEqual({ demo: null, real: 'keep' });
+  await page.goForward();
+  await expect(page.getByRole('heading', { name: 'Not ready' })).toBeVisible();
+  expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })), 'Forward starts a fresh demo')
+    .toEqual({ demo: 'sample', real: 'keep' });
 });
 
 test('@claim:demo-sample-only demo exposes no real inputs, never reads injected file details, and changes only demo storage', async ({ page }) => {
