@@ -1,0 +1,14 @@
+{
+  "url": "https://cloud-exit-evidence.sociobot.in/",
+  "loadMs": 768,
+  "errors": [],
+  "a11y": {
+    "title": "Cloud Exit Evidence — Check an offline copy",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 2136
+  }
+}

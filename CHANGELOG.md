@@ -2,6 +2,14 @@
 
 All notable changes follow Keep a Changelog. This project uses semantic versioning.
 
+## [Unreleased]
+
+### Fixed
+
+- Made the browser demo sample-only so it cannot accept or read real file details.
+- Made **Start for real** clear demo state and open the command-line setup.
+- Prevented mobile header links from clipping at 390 px.
+
 ## [0.1.1] - 2026-08-28
 
 ### Fixed

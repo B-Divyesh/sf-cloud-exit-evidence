@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-08-28T15:41:17.181Z",
+  "commit": "d57986a0ca989310582f25fd537c5102135aaced",
+  "deploymentId": "43b86823-a767-4dd4-ab20-f0e24d759776",
+  "origin": "https://cloud-exit-evidence.sociobot.in",
+  "routes": {
+    "normal": ["/", "/demo/", "/privacy/", "/terms/"],
+    "viewports": ["390x844", "1440x900"],
+    "status": 200,
+    "metadataAndStructure": true,
+    "axeSeriousCritical": 0,
+    "consoleErrors": 0,
+    "missingRoute": {"path": "/missing-polish-5", "status": 404, "title": "Not found — Cloud Exit Evidence"},
+    "forwardAndBackHeadingFocus": true,
+    "politeAnnouncement": true
+  },
+  "demo": {
+    "queryShortcut": true,
+    "reportBefore390pxFold": true,
+    "realInputs": 0,
+    "injectedFileDetailReads": 0,
+    "injectedPrivatePathRendered": false,
+    "entryStorage": {"demo": "sample", "real": "keep"},
+    "resetStorage": {"demo": "sample", "real": "keep"},
+    "exitStorage": {"demo": null, "real": "keep"},
+    "startForRealUrl": "https://cloud-exit-evidence.sociobot.in/#install",
+    "installHeadingTopPx": 1.59375
+  },
+  "mobile": {
+    "minimumTargetPx": 44,
+    "headerLinksInsideViewport": true,
+    "horizontalHeaderScroll": false
+  },
+  "privacy": {
+    "requestOrigins": ["https://cloud-exit-evidence.sociobot.in"],
+    "contentSecurityPolicy": "default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+    "referrerPolicy": "no-referrer",
+    "xContentTypeOptions": "nosniff",
+    "xFrameOptions": "DENY"
+  },
+  "offline": {"startedAtLanding": true, "directDemoLoaded": true}
+}
