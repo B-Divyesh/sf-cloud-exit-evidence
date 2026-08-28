@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f3f0e8">
+    <meta name="description" content="Audit whether an offline cloud-file copy is complete, current, and honest about exclusions.">
+    <title>Cloud Exit Evidence — Is your offline copy actually complete?</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <div class="offline-notice" id="offline-notice" role="status" hidden>You are offline. The demo still runs locally in this tab.</div>
+    <header class="site-header">
+      <a class="wordmark" href="/" aria-label="Cloud Exit Evidence home">CEE / 001</a>
+      <nav aria-label="Primary navigation">
+        <a href="#method">Method</a>
+        <a href="#demo">Local demo</a>
+        <a href="#install">Install</a>
+      </nav>
+      <span class="folio" aria-hidden="true">Friday, 28 August 2026</span>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="masthead" aria-labelledby="page-title">
+        <p class="kicker">Independent file coverage audit · Issue no. 001</p>
+        <h1 id="page-title">Your cloud copy<br>needs a witness.</h1>
+        <div class="hero-grid">
+          <div class="standfirst">
+            <p>Cloud Exit Evidence compares a provider export with the drive you plan to rely on—then names every missing, stale, mismatched, or permission-excluded file.</p>
+            <a class="primary-action" href="#demo">Audit a sample <span aria-hidden="true">↓</span></a>
+            <p class="small-note"><strong>Local by construction.</strong> No login, upload, tracking, or cloud credentials.</p>
+          </div>
+          <figure class="hero-figure">
+            <img src="/evidence-ledger.webp" width="1440" height="960" fetchpriority="high" alt="An archival ledger holding a physical drive beside a cloud-shaped hole cut through the paper">
+            <figcaption><span>Exhibit A.</span> A copied file is not evidence of a complete copy.</figcaption>
+          </figure>
+          <aside class="front-note" aria-label="Important distinction">
+            <span class="proof-mark" aria-hidden="true">×</span>
+            <p><strong>Synchronization is not backup.</strong> A sync can faithfully repeat deletion, corruption, or a permission gap. This tool audits coverage; you still need versioned media and restore tests.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="method section-rule" id="method" aria-labelledby="method-title">
+        <header class="section-heading">
+          <p class="section-number">§ 01 / The method</p>
+          <h2 id="method-title">Three claims. All inspectable.</h2>
+        </header>
+        <ol class="method-list">
+          <li>
+            <span class="step">01</span>
+            <h3>Expected</h3>
+            <p>Read a JSON, CSV, or rclone listing. Paths are validated; duplicate and escaping paths are rejected.</p>
+          </li>
+          <li>
+            <span class="step">02</span>
+            <h3>Observed</h3>
+            <p>Walk the physical destination without following symlinks. Compare bytes, dates, and SHA-256 when supplied.</p>
+          </li>
+          <li>
+            <span class="step">03</span>
+            <h3>Accounted for</h3>
+            <p>Group gaps by folder, type, and month. Declared permission exclusions stay open until explicitly acknowledged.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="demo section-rule" id="demo" aria-labelledby="demo-title">
+        <header class="section-heading demo-heading">
+          <div>
+            <p class="section-number">§ 02 / Local desk check</p>
+            <h2 id="demo-title">Try the evidence test.</h2>
+          </div>
+          <p>This browser edition checks names, byte sizes, modified dates, and declared exclusions. Nothing leaves this page. Use the CLI for SHA-256 and encrypted reports.</p>
+        </header>
+
+        <div class="demo-layout">
+          <form id="audit-form" class="audit-form" novalidate>
+            <div class="field">
+              <label for="manifest">1. Paste a manifest</label>
+              <textarea id="manifest" name="manifest" rows="12" spellcheck="false" aria-describedby="manifest-help"></textarea>
+              <p id="manifest-help" class="field-help">Native JSON, rclone JSON, or CSV. Paths stay in memory.</p>
+            </div>
+            <fieldset>
+              <legend>2. Choose the physical copy</legend>
+              <label class="file-button" for="directory">Select destination folder</label>
+              <input id="directory" name="directory" type="file" webkitdirectory multiple>
+              <p class="field-help" id="file-count">No folder selected.</p>
+            </fieldset>
+            <div class="button-row">
+              <button class="primary-action" type="submit">Run local audit</button>
+              <button class="text-action" id="load-sample" type="button">Load evidence fixture</button>
+            </div>
+            <p class="form-error" id="form-error" role="alert" hidden></p>
+          </form>
+
+          <section class="report" id="report" aria-labelledby="report-title" aria-live="polite">
+            <div class="report-empty" id="report-empty">
+              <p class="stamp" aria-hidden="true">Awaiting evidence</p>
+              <h3 id="report-title">No audit yet</h3>
+              <p>Paste a manifest and choose a folder, or load the intentional-gap fixture to see the report call out missing and excluded coverage.</p>
+            </div>
+            <div id="report-results" hidden></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="install section-rule" id="install" aria-labelledby="install-title">
+        <header class="section-heading">
+          <p class="section-number">§ 03 / Field edition</p>
+          <h2 id="install-title">Run the full audit offline.</h2>
+        </header>
+        <div class="install-grid">
+          <div>
+            <p class="lede">One open-source Rust binary. No daemon. No account. No telemetry.</p>
+            <div class="command" aria-label="Installation command">
+              <code tabindex="0">cargo install cloud-exit-evidence</code>
+              <button class="copy-button" type="button" data-copy="cargo install cloud-exit-evidence">Copy</button>
+            </div>
+            <div class="command" aria-label="Audit command">
+              <code tabindex="0">cloud-exit-evidence audit --manifest export.json --destination /media/offline</code>
+              <button class="copy-button" type="button" data-copy="cloud-exit-evidence audit --manifest export.json --destination /media/offline">Copy</button>
+            </div>
+          </div>
+          <dl class="edition-notes">
+            <div><dt>Inputs</dt><dd>Native JSON, CSV, rclone lsjson</dd></div>
+            <div><dt>Evidence</dt><dd>Terminal, JSON, Markdown, encrypted .cee</dd></div>
+            <div><dt>Exit codes</dt><dd>0 pass · 2 gaps · 3 invalid input</dd></div>
+            <div><dt>License</dt><dd>MIT · free forever</dd></div>
+          </dl>
+        </div>
+        <p class="source-link"><a href="https://github.com/B-Divyesh/sf-cloud-exit-evidence">Read the source and manifest specification <span aria-hidden="true">↗</span></a></p>
+      </section>
+    </main>
+
+    <footer>
+      <p>Cloud Exit Evidence <span aria-hidden="true">/</span> A provider-neutral utility.</p>
+      <nav aria-label="Legal">
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="https://github.com/B-Divyesh/sf-cloud-exit-evidence">Source</a>
+      </nav>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

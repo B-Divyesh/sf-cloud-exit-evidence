@@ -1,0 +1,25 @@
+{
+  "name": "cloud-exit-evidence-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config site/vite.config.ts",
+    "build": "npm run build:cli && npm run build:site",
+    "build:cli": "cargo build --release --locked",
+    "build:site": "vite build --config site/vite.config.ts",
+    "preview": "vite preview --config site/vite.config.ts --host 127.0.0.1",
+    "test": "npm run test:cli && npm run test:site",
+    "test:cli": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace",
+    "test:unit": "vitest run --config site/vitest.config.ts",
+    "test:browser": "playwright test",
+    "test:site": "npm run test:unit && npm run build:site && npm run test:browser"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.58.2",
+    "typescript": "5.9.2",
+    "vite": "7.3.6",
+    "vitest": "3.2.7"
+  }
+}
