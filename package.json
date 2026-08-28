@@ -9,12 +9,13 @@
     "build:cli": "cargo build --release --locked",
     "build:site": "vite build --config site/vite.config.ts",
     "preview": "vite preview --config site/vite.config.ts --host 127.0.0.1",
-    "test": "npm run test:cli && npm run test:site",
+    "test": "npm run test:cli && npm run test:site && npm run test:build-artifacts",
     "test:cli": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace",
     "test:unit": "vitest run --config site/vitest.config.ts",
     "test:response-policy": "npm run build:site && node scripts/verify-static-policy.mjs",
     "test:browser": "npm run build:cli && playwright test",
     "test:claims": "npm run build:cli && npm run build:site && playwright test",
+    "test:build-artifacts": "node --test tests/build-artifacts.test.mjs",
     "test:site": "npm run test:unit && npm run test:response-policy && npm run test:browser"
   },
   "devDependencies": {

@@ -124,6 +124,8 @@ footer small { color: var(--ink-soft); white-space: nowrap; }
 .demo-banner div { display: flex; flex-wrap: wrap; gap: 12px; }
 .demo-banner .text-action { display: inline-flex; align-items: center; text-decoration: none; }
 .demo-preview { padding-bottom: 64px; }
+.limitations-copy { margin-left: 25%; max-width: 54ch; font: 1.3rem/1.45 var(--display); }
+.limitations-copy p { margin: 0 0 12px; }
 .sample-preview { display: grid; gap: 10px; max-width: 720px; border: 1px solid var(--ink); padding: 24px; background: var(--sheet); color: var(--ink); text-decoration: none; box-shadow: 8px 8px 0 rgba(23, 23, 20, .12); }
 .sample-preview:hover { color: var(--ink); border-color: var(--proof); box-shadow: 8px 8px 0 rgba(165, 42, 37, .2); }
 .sample-preview strong { color: var(--danger); font: 400 clamp(2.6rem, 6vw, 4.8rem)/.95 var(--display); text-transform: uppercase; }
@@ -145,6 +147,7 @@ footer small { color: var(--ink-soft); white-space: nowrap; }
   .hero-grid { grid-template-columns: 4fr 8fr; }
   .front-note { grid-column: 1 / -1; }
   .method-list { margin-left: 0; }
+  .limitations-copy { margin-left: 0; }
   .demo-layout { grid-template-columns: 1fr; }
   .report { min-height: 360px; }
 }

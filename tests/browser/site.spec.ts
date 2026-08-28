@@ -108,15 +108,47 @@ test('@claim:no-account the website offers the demo without an account or sign-i
   await expect(page.getByRole('heading', { name: 'Not ready' })).toBeVisible();
 });
 
-test('@claim:offline-reload service worker reloads the sample while offline', async ({ page, context }) => {
-  await page.goto('/demo/');
+test('@claim:offline-reload a landing-page visit makes the demo work offline', async ({ page, context }) => {
+  await page.goto('/');
   await page.waitForFunction(() => navigator.serviceWorker?.controller !== null);
-  await page.reload();
-  await expect(page.getByRole('heading', { name: 'Not ready' })).toBeVisible();
+  await page.waitForFunction(async () => {
+    const cache = await caches.open('cee-shell-v2');
+    const paths = (await cache.keys()).map((request) => new URL(request.url).pathname);
+    return paths.includes('/demo/') && paths.some((path) => path.startsWith('/assets/main-'));
+  });
   await context.setOffline(true);
-  await page.reload();
+  await page.goto('/demo/');
+  await expect(page.getByText('Demo — sample data, nothing is saved.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Not ready' })).toBeVisible();
+  if (page.viewportSize()?.width === 390) {
+    await page.screenshot({ path: '.factory/evidence/offline-demo-from-landing-390.png', fullPage: false });
+  }
   await context.setOffline(false);
+});
+
+test('demo validation errors use the same plain language as its controls', async ({ page }) => {
+  await page.goto('/demo/');
+  const fileList = page.locator('#manifest');
+  const error = page.locator('#form-error');
+  await fileList.fill('');
+  await page.getByRole('button', { name: 'Check this file list' }).click();
+  await expect(error).toHaveText('Add a file list before checking.');
+  await fileList.fill('{not json');
+  await page.getByRole('button', { name: 'Check this file list' }).click();
+  await expect(error).toHaveText('This file list is not valid JSON. Check its commas and quotation marks.');
+  await page.locator('#directory').dispatchEvent('change');
+  await fileList.fill('{"files":[{"path":"Documents/lease.pdf","size":22}]}');
+  await page.getByRole('button', { name: 'Check this file list' }).click();
+  await expect(error).toHaveText('Select a folder or load the sample files.');
+  await expect(page.getByRole('button', { name: 'Checking files…' })).toHaveCount(0);
+});
+
+test('landing shows the sample product before method and limitations sections', async ({ page }) => {
+  await page.goto('/');
+  const sections = await page.locator('main > section').evaluateAll((nodes) => nodes.map((node) => node.className));
+  expect(sections).toEqual(['masthead', 'demo-preview section-rule', 'method section-rule', 'limitations section-rule', 'install section-rule']);
+  await expect(page.getByRole('heading', { name: 'What this check does not do.' })).toBeVisible();
+  await expect(page.getByText('It does not copy or restore files.')).toBeVisible();
 });
 
 test('@claim:routing-focus forward and back route navigation focus and quietly announce the page heading', async ({ page }) => {
@@ -202,6 +234,28 @@ test('@claim:cli-no-network command-line runs use no network client and leave no
     writeFileSync(manifest, '{"files":[{"path":"present.txt","size":4}]}');
     expectStatus(runCli(['audit', '--manifest', manifest, '--destination', destination, '--format', 'json'], { cwd: workspace }), 0);
     expect(readdirSync(workspace)).toEqual([]);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('@claim:cli-no-account command-line help, demo, and checks run with no account or sign-in', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'cee-noauth-'));
+  try {
+    const destination = join(directory, 'offline');
+    const fileList = join(directory, 'files.json');
+    mkdirSync(destination);
+    writeFileSync(join(destination, 'present.txt'), 'data');
+    writeFileSync(fileList, '{"files":[{"path":"present.txt","size":4}]}');
+    const environment = { PATH: process.env.PATH, LANG: 'C' };
+    const help = runCli(['--help'], { cwd: directory, env: environment });
+    const demo = runCli(['demo'], { cwd: directory, env: environment });
+    const check = runCli(['audit', '--manifest', fileList, '--destination', destination], { cwd: directory, env: environment });
+    expectStatus(help, 0);
+    expectStatus(demo, 0);
+    expectStatus(check, 0);
+    const output = `${help.stdout}${help.stderr}${demo.stdout}${demo.stderr}${check.stdout}${check.stderr}`;
+    expect(output).not.toMatch(/sign[ -]?in|login|authentication required|enter (?:an )?account|password prompt/i);
+    const sampleDirectory = demo.stderr.match(/Demo files written to (.+)/)?.[1].trim();
+    if (sampleDirectory) rmSync(sampleDirectory, { recursive: true, force: true });
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
@@ -398,6 +452,12 @@ test('@claim:site-no-third-party-runtime every site route requests only its own 
     .map((path) => readFileSync(join(process.cwd(), path), 'utf8')).join('\n');
   expect(source).not.toMatch(/<script[^>]+https?:\/\//i);
   expect(source).not.toMatch(/<(?:link|script)[^>]+(?:google-analytics|googletagmanager|doubleclick|fonts\.googleapis|use\.typekit)/i);
+});
+
+test('@claim:terms-effective-date terms show the tested effective date', async ({ page }) => {
+  await page.goto('/terms/');
+  await expect(page.locator('[data-effective-date="2026-08-28"]')).toHaveText('These terms were last updated on 28 August 2026.');
+  expect(readFileSync(join(process.cwd(), 'site', 'terms', 'index.html'), 'utf8')).toContain('data-effective-date="2026-08-28"');
 });
 
 test('@claim:mit-license repository ships the MIT license text', () => {

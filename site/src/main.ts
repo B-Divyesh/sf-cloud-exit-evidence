@@ -55,16 +55,16 @@ function runAudit(moveFocus = !isDemo) {
   const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
   if (button) {
     button.disabled = true;
-    button.textContent = 'Checking evidence…';
+    button.textContent = 'Checking files…';
   }
   window.setTimeout(() => {
     try {
       const manifest = parseManifest(manifestInput?.value ?? '');
       const localEntries = sampleFiles ?? filesFromInput(directoryInput?.files);
-      if (!localEntries.length) throw new Error('Select a destination folder or load the evidence fixture.');
+      if (!localEntries.length) throw new Error('Select a folder or load the sample files.');
       renderReport(auditDemo(manifest, localEntries), moveFocus);
     } catch (error) {
-      showError(error instanceof Error ? error.message : 'The audit could not be completed.');
+      showError(error instanceof Error ? error.message : 'The file-list check could not be completed.');
     } finally {
       if (button) {
         button.disabled = false;

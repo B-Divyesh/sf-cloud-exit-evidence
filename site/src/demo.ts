@@ -38,24 +38,24 @@ export interface ParsedManifest {
 function cleanPath(path: string): string {
   const normalized = path.replaceAll('\\', '/').replace(/^\.\//, '');
   if (!normalized || normalized.startsWith('/') || normalized.split('/').includes('..')) {
-    throw new Error(`Unsafe manifest path: ${path || '(empty)'}`);
+    throw new Error(`Unsafe file-list path: ${path || '(empty)'}`);
   }
   return normalized;
 }
 
 export function parseManifest(source: string): ParsedManifest {
   const trimmed = source.trim();
-  if (!trimmed) throw new Error('Paste a manifest before running the audit.');
+  if (!trimmed) throw new Error('Add a file list before checking.');
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
     let value: unknown;
     try {
       value = JSON.parse(trimmed);
     } catch {
-      throw new Error('The JSON manifest could not be parsed. Check commas and quotation marks.');
+      throw new Error('This file list is not valid JSON. Check its commas and quotation marks.');
     }
     const root = value as Record<string, unknown>;
     const rawFiles = Array.isArray(value) ? value : root.files;
-    if (!Array.isArray(rawFiles)) throw new Error('JSON must contain a files array.');
+    if (!Array.isArray(rawFiles)) throw new Error('JSON must contain a file list.');
     const files = rawFiles
       .filter((row) => !(row as Record<string, unknown>).IsDir)
       .map((row) => {
@@ -84,7 +84,7 @@ export function parseManifest(source: string): ParsedManifest {
   const rows = trimmed.split(/\r?\n/).map(parseCsvRow);
   const headers = rows.shift()?.map((value) => value.toLowerCase()) ?? [];
   const pathIndex = headers.indexOf('path');
-  if (pathIndex < 0) throw new Error('CSV needs a path header.');
+  if (pathIndex < 0) throw new Error('The CSV file list needs a path header.');
   const sizeIndex = headers.indexOf('size');
   const modifiedIndex = headers.indexOf('modified');
   const excludedIndex = headers.indexOf('excluded');
@@ -94,7 +94,7 @@ export function parseManifest(source: string): ParsedManifest {
   rows.forEach((row) => {
     const path = cleanPath(row[pathIndex] ?? '');
     if (excludedIndex >= 0 && row[excludedIndex]?.toLowerCase() === 'true') {
-      exclusions.push({ path, reason: row[reasonIndex] || 'declared by manifest' });
+      exclusions.push({ path, reason: row[reasonIndex] || 'listed in the file list' });
     } else {
       const rawSize = row[sizeIndex];
       files.push({ path, size: rawSize ? Number(rawSize) : undefined, modified: row[modifiedIndex] || undefined });
@@ -104,10 +104,10 @@ export function parseManifest(source: string): ParsedManifest {
 }
 
 function validateUnique(manifest: ParsedManifest): ParsedManifest {
-  if (!manifest.files.length && !manifest.exclusions.length) throw new Error('The manifest contains no files or exclusions.');
+  if (!manifest.files.length && !manifest.exclusions.length) throw new Error('The file list contains no files or exclusions.');
   const paths = new Set<string>();
   for (const file of manifest.files) {
-    if (paths.has(file.path)) throw new Error(`Duplicate manifest path: ${file.path}`);
+    if (paths.has(file.path)) throw new Error(`Duplicate file-list path: ${file.path}`);
     paths.add(file.path);
   }
   return manifest;
@@ -142,7 +142,7 @@ export function auditDemo(manifest: ParsedManifest, localEntries: LocalEntry[]):
     }
     const expectedTime = expected.modified ? Date.parse(expected.modified) : Number.NaN;
     if (!Number.isNaN(expectedTime) && expectedTime - actual.modified > 2000) {
-      return { path: expected.path, state: 'stale', detail: 'The local modified time predates the manifest' };
+      return { path: expected.path, state: 'stale', detail: 'The local modified time predates the listed date' };
     }
     return { path: expected.path, state: 'present', detail: 'Name, size, and available date evidence match' };
   });
