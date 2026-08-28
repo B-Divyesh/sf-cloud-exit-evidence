@@ -30,6 +30,7 @@ Accessibility is checked by Axe in all five routes at desktop and 390px; no seri
 
 - `.factory/evidence/home-desktop.png`
 - `.factory/evidence/demo-mobile.png`
+- `.factory/evidence/live-demo-mobile.png`
 
 Every manifest entry in `.factory/claims.json` has exactly one `@claim:` test definition and was covered by the clean-clone claim run.
 
@@ -44,6 +45,8 @@ npm run build
 
 Publish the CLI with the factory-owned registry credentials only, after `cargo package -p cloud-exit-evidence --locked`.
 
-## Known gaps
+## Deployment and cold-live recheck
 
-None in the repaired artifact. Deployment and cold-live recheck are recorded with the work-order result after the branch push.
+Deployed `dist/site/` to Azure Static Web App `sf-cloud-exit-evidence` (production) with the Static Web Apps CLI. A fresh 390px browser context then checked <https://cloud-exit-evidence.sociobot.in/?demo=1>: it redirected to `/demo/`, displayed the **Not ready** sample report and demo banner, made 9 same-origin requests, and recorded zero console errors. Reset demo restored only `demo:cloud-exit-evidence`; Start for real removed that key and returned home.
+
+Cold HTTP checks returned: `/` 200 with the new landing title/copy; `/demo/` 200 with `Demo — Cloud Exit Evidence`; `/privacy/` and `/terms/` 200; `/missing-review-route` 404 with `Not found — Cloud Exit Evidence` and the product 404 page. No known gaps remain.

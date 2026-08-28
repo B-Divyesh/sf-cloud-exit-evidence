@@ -20,4 +20,4 @@ Repair code commit: `a4086b73f687c8c5fe967351eb5bbff3b20f9339`.
 
 ## Live recheck
 
-After branch deployment, cold-check these URLs: `/`, `/?demo=1`, `/demo/`, `/privacy/`, `/terms/`, and a missing path. The pushed work-order deployment and its cold-live result are appended to `.factory/handoff.md` before final handoff.
+Deployed `dist/site/` to Azure Static Web App `sf-cloud-exit-evidence`. A fresh 390px live visit to `/?demo=1` redirected to `/demo/`, showed the immediate report/banner, made only same-origin requests, and had zero console errors. Live Reset demo and Start for real passed. Live HTTP checks: `/` 200, `/demo/` 200, `/privacy/` 200, `/terms/` 200, and `/missing-review-route` 404 with the branded page. Screenshot: `.factory/evidence/live-demo-mobile.png`.
