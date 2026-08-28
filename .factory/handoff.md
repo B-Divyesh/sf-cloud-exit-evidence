@@ -1,31 +1,19 @@
-# Cloud Exit Evidence — build handoff
+# Cloud Exit Evidence — repair handoff
 
-## Independent verification result — **FAIL**
+Work order: `cloud-exit-evidence-repair-1`
 
-Candidate `a5600bf50e10e95621db2483d4967a4e17bc9391` was independently verified on 2026-08-28 against <https://cloud-exit-evidence.sociobot.in/>. The CLI/site build, package install, end-to-end audit behavior, offline reload, browser checks, and Lighthouse pass; the live files are byte-identical to the candidate build. **Do not release yet:** production does not apply `dist/site/_headers`. It therefore lacks the required CSP and Permissions-Policy, sends `strict-origin-when-cross-origin` instead of `no-referrer`, and gives fingerprinted assets and `/sw.js` only `Cache-Control: public, must-revalidate, max-age=30` instead of immutable/no-cache policy. Full evidence and severities are in [.factory/verification.md](verification.md).
+Base verified: `a5600bf50e10e95621db2483d4967a4e17bc9391`
+Repaired: 2026-08-28 (UTC)
 
-The deployment host must be configured to consume `_headers` (or equivalent native rules) and redeployed; then repeat the live header/caching check. A non-blocking moderate axe finding also remains for a nested complementary landmark on the home page.
+## Release-blocking repair
 
-Work order: `cloud-exit-evidence-build-1`
+The independent verifier correctly found that production is hosted by Azure Static Web Apps, while the candidate supplied Cloudflare/Netlify-style `dist/site/_headers`. Azure ignored that file, so the intended CSP, permissions/referrer policy, and cache policy were never served.
 
-Version: `0.1.0`
-
-Completed: 2026-08-28
-
-## What shipped
-
-- A publishable Rust single-binary CLI using `clap` with two commands:
-  - `audit`: reads native JSON, CSV, and `rclone lsjson`; validates safe/unique paths; compares an offline directory without following symlinks; checks size, timestamp, and SHA-256 when provided.
-  - `decrypt`: decrypts a locally saved `.cee` evidence report to stdout.
-- Falsifiable results for verified, present-unverified, missing, stale, size mismatch, hash mismatch, unsafe/unreadable, extra, and declared exclusion evidence.
-- Coverage summaries by top-level folder, file type, and manifest month.
-- Explicit `READY`, `READY WITH EXCEPTIONS`, and `NOT READY` states, with configurable CI exit policy. A declared exclusion cannot pass until acknowledged; file gaps cannot be acknowledged away.
-- Terminal, JSON, and Markdown formats. Path-redacted output is available for sharing.
-- Encrypted saved reports only: XChaCha20-Poly1305 with an Argon2id-derived key read from `CEE_PASSPHRASE`. The CLI has no network calls, telemetry, prompts, or credential storage.
-- An intentional-gap fixture under `fixtures/intentional-gaps/` that exposes a mismatched file, missing file, and permission exclusion.
-- A static Vite documentation site with an in-browser local audit, empty/loading/error/offline states, keyboard flow, 390 px layout, `/privacy/`, `/terms/`, service-worker shell cache, and no analytics or third-party runtime assets.
-- A product-specific monochrome evidence-broadsheet system documented in `.factory/design.md`.
-- Original hero imagery generated through `/opt/fleet/lib/gen-image.sh` using the factory `factory-image` deployment. Source, generation metadata, and prompt are in `site/assets/source/`; responsive WebP outputs are 158 KB and 28 KB in `site/public/`.
+- Replaced `site/public/_headers` with Azure Static Web Apps' native `site/public/staticwebapp.config.json`. The generated deployment root now sets a self-only CSP with `frame-ancestors 'none'`, `Permissions-Policy`, `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: DENY` globally.
+- The same native configuration sets one-year immutable caching for fingerprinted `/assets/*` and both content-addressed hero images, plus `Cache-Control: no-cache` for `/sw.js` so service-worker updates are checked correctly.
+- Added `scripts/verify-static-policy.mjs`, run by `npm test`, which fails unless the actual generated `dist/site/staticwebapp.config.json` contains each required header and cache rule.
+- Replaced the nested `aside` with a presentational content block. Axe no longer reports `landmark-complementary-is-top-level`; the explanatory content and its visual treatment are unchanged.
+- Extended Playwright coverage to require that specific axe rule to remain absent and to prove a service-worker-controlled reload succeeds offline after an online update reload on desktop and 390 px mobile.
 
 ## Run and verify
 
@@ -33,51 +21,36 @@ Completed: 2026-08-28
 npm ci
 npm test
 npm run build
-```
-
-The deployment root is `dist/site/` and contains `index.html`. The release CLI is `target/release/cloud-exit-evidence`.
-
-Additional release checks:
-
-```sh
 cargo package -p cloud-exit-evidence --locked --allow-dirty
-target/release/cloud-exit-evidence audit \
-  --manifest fixtures/intentional-gaps/manifest.json \
-  --destination fixtures/intentional-gaps/offline
 ```
 
-Publishing is intentionally not performed by this worker. The verified crate artifact is ready for the factory’s registry credentials.
+Deploy the static artifact at `dist/site/` to Azure Static Web Apps. Its root-level `staticwebapp.config.json` is part of the artifact and must not be excluded by deployment packaging. The release CLI is `target/release/cloud-exit-evidence`. Registry publishing remains intentionally out of scope; factory release automation owns credentials.
 
 ## Verification evidence
 
+- Reproduced the release blocker against the prior live deployment with `curl -I`: it lacked CSP and Permissions-Policy, sent `Referrer-Policy: strict-origin-when-cross-origin`, and served assets and `/sw.js` with `public, must-revalidate, max-age=30`.
+- Clean `npm ci`: completed; `npm audit --omit=dev`: **0 vulnerabilities**.
 - `npm test`: pass.
-  - Rust: 6 unit tests, 2 CLI integration tests, 1 compiling doctest.
-  - Site: 4 Vitest tests.
-  - Browser: 10 Playwright tests across desktop Chromium and 390×844 mobile Chromium, including axe serious/critical scans, keyboard navigation, legal pages, and intentional-gap behavior.
-- `npm run build`: pass; release CLI plus Vite site generated reproducibly.
-- `cargo package -p cloud-exit-evidence --locked --allow-dirty`: pass; 75.7 KiB package, 20.7 KiB compressed, verified by Cargo.
-- `npm audit`: 0 known vulnerabilities.
-- Manual intentional-gap audit: exit code `2`; identified 1 size mismatch, 1 missing file, and 1 unacknowledged permission exclusion.
-- Lighthouse 13.4.1, mobile profile against the production build:
-  - Performance: **100**
-  - Accessibility: **100**
-  - Best Practices: **100**
-  - SEO: **100**
-  - LCP: **1.21 s**; FCP: **0.95 s**; TBT: **0 ms**; CLS: **0**
-  - Initial transfer: **40.2 KB** on the mobile responsive-image path.
-- Static budgets: initial JS 7.6 KB uncompressed, CSS 10.1 KB, fonts 0 KB, hero WebP 28 KB mobile / 158 KB desktop.
-- Visual review completed with full-page screenshots at 1440 px and 390 px. No clipped essential content or horizontal page overflow observed.
+  - Rust: formatting check, Clippy `-D warnings`, 6 unit tests, 2 CLI integration tests, and 1 doctest.
+  - Site: 4 Vitest tests; generated Azure response-policy assertion passed.
+  - Browser: 12 Playwright tests across desktop Chromium and 390×844 Chromium. They cover the intentional-gap audit, legal pages, keyboard skip link, axe serious/critical checks, absence of the verifier's complementary-landmark finding, service-worker offline reload/update behavior, and console errors.
+- `npm run build`: pass; generated `target/release/cloud-exit-evidence` and `dist/site/`. Static budgets remain 6.88 KB initial app JS, 10.07 KB CSS, no fonts, and 28.4 KB mobile hero image.
+- Lighthouse 13.4.1 against the built site with its mobile profile: Performance **100**, Accessibility **100**, Best Practices **100**, SEO **100**.
+- `cargo package -p cloud-exit-evidence --locked --allow-dirty`: pass; 12 files, 76.7 KiB (21.1 KiB compressed). The resulting crate was unpacked into a clean temporary consumer, installed with `cargo install --path … --root … --locked`, and both top-level and `audit` help passed.
+
+## Deployment verification
+
+After the repair commit is deployed, verify the live root, legal pages, fingerprinted JS/CSS, hero images, and `/sw.js` with `curl -I`. Required values are:
+
+- global: the CSP, permissions policy, `no-referrer`, `nosniff`, and `DENY` values in `dist/site/staticwebapp.config.json`;
+- `/assets/*`, `/evidence-ledger.webp`, and `/evidence-ledger-mobile.webp`: `Cache-Control: public, max-age=31536000, immutable`;
+- `/sw.js`: `Cache-Control: no-cache`.
+
+Also compare the live `index.html`, `staticwebapp.config.json`, and `/sw.js` SHA-256 values to `dist/site/` after deployment. The final live result is recorded after push.
 
 ## Known boundaries
 
-- The tool proves consistency against the supplied provider listing. It cannot discover files the provider itself omitted unless the export declares that exclusion; the report and terms state this limitation.
+- The tool proves consistency against the supplied provider listing. It cannot discover files the provider omitted unless that exclusion is declared.
 - It does not download, synchronize, version, or restore files. Users still need independent versioned media and restore tests.
-- The browser demo compares names, sizes, and dates and deliberately leaves SHA-256 and encrypted report generation to the CLI.
-- v1 includes native JSON/CSV and rclone-compatible formats rather than provider-specific account adapters, keeping the tool credential-free and provider-neutral.
-- The crate has not been published; factory release automation owns registry credentials. The landing page’s install command uses the public Git repository in the meantime.
-
-## Suggested next steps
-
-- Add documented transform recipes for major provider export inventories as real samples become available.
-- Sign release binaries and publish checksums through factory release automation.
-- Add an optional second-manifest history comparison to make provider-side inventory shrinkage visible across audits.
+- The browser demo compares names, sizes, and dates; SHA-256 and encrypted report generation remain CLI features.
+- v1 deliberately supports native JSON/CSV and rclone-compatible listings instead of provider account adapters, keeping it credential-free and provider-neutral.

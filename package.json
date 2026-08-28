@@ -12,8 +12,9 @@
     "test": "npm run test:cli && npm run test:site",
     "test:cli": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace",
     "test:unit": "vitest run --config site/vitest.config.ts",
+    "test:response-policy": "npm run build:site && node scripts/verify-static-policy.mjs",
     "test:browser": "playwright test",
-    "test:site": "npm run test:unit && npm run build:site && npm run test:browser"
+    "test:site": "npm run test:unit && npm run test:response-policy && npm run test:browser"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",

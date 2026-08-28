@@ -13,6 +13,7 @@ for (const path of ['/', '/privacy/', '/terms/']) {
     await expect(page.locator('h1')).toHaveCount(1);
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([]);
+    expect(results.violations.find((violation) => violation.id === 'landmark-complementary-is-top-level')).toBeUndefined();
     expect(consoleErrors).toEqual([]);
   });
 }
@@ -32,4 +33,15 @@ test('keyboard reaches the primary demo path', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
   await page.getByRole('link', { name: 'Skip to main content' }).press('Enter');
   await expect(page.locator('#main')).toBeFocused();
+});
+
+test('service worker keeps the shell available offline after an update reload', async ({ page, context }) => {
+  await page.goto('/');
+  await page.waitForFunction(() => navigator.serviceWorker?.controller !== null);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Your cloud copy needs a witness.' })).toBeVisible();
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Your cloud copy needs a witness.' })).toBeVisible();
+  await context.setOffline(false);
 });

@@ -104,7 +104,7 @@ npm test
 npm run build
 ```
 
-`npm test` runs Rust formatting/lints/tests plus site unit and browser tests. `npm run build` creates the release CLI and the deployable static site at `dist/site/`. `cargo package --locked --allow-dirty` verifies the publishable Rust crate; registry publishing is handled by the factory.
+`npm test` runs Rust formatting/lints/tests plus site unit and browser tests. It also verifies the generated Azure Static Web Apps response policy: a restrictive CSP and permissions policy, `no-referrer`, immutable fingerprinted assets, and a revalidated service worker. `npm run build` creates the release CLI and the deployable static site at `dist/site/`. Deploy `dist/site/` to Azure Static Web Apps; its root-level `staticwebapp.config.json` is required for the security and cache policy. `cargo package --locked --allow-dirty` verifies the publishable Rust crate; registry publishing is handled by the factory.
 
 ## Website
 
