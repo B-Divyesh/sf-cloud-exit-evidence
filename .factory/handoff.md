@@ -40,13 +40,13 @@ Deploy the static artifact at `dist/site/` to Azure Static Web Apps. Its root-le
 
 ## Deployment verification
 
-After the repair commit is deployed, verify the live root, legal pages, fingerprinted JS/CSS, hero images, and `/sw.js` with `curl -I`. Required values are:
+Commit `715038d` was pushed to `main`, then `dist/site/` was deployed successfully with `/opt/fleet/lib/deploy-static.sh cloud-exit-evidence dist/site` to Azure Static Web Apps.
 
-- global: the CSP, permissions policy, `no-referrer`, `nosniff`, and `DENY` values in `dist/site/staticwebapp.config.json`;
-- `/assets/*`, `/evidence-ledger.webp`, and `/evidence-ledger-mobile.webp`: `Cache-Control: public, max-age=31536000, immutable`;
-- `/sw.js`: `Cache-Control: no-cache`.
-
-Also compare the live `index.html`, `staticwebapp.config.json`, and `/sw.js` SHA-256 values to `dist/site/` after deployment. The final live result is recorded after push.
+- Live root, fingerprinted app JS, and `/sw.js` now all serve the exact CSP, permissions policy, `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: DENY` configured in the artifact.
+- Live app JS serves `Cache-Control: public, max-age=31536000, immutable`; `/sw.js` serves `Cache-Control: no-cache`. Azure intentionally keeps the HTML document on its short revalidation policy.
+- SHA-256 live identity passed: `index.html` = `571aff5619537ebdaedf7e0957e2db5d13428b6235b011a340e7ef7506792a17`; `/sw.js` = `9837f86dce38f86806da99c0b34c334347ae4b189d528aafd13eb1ced487200b`, each byte-identical to `dist/site/`.
+- `/opt/fleet/lib/verify-url.sh` passed against the live URL: HTTPS 200, title/lang/one h1/main/alt checks pass, 0 browser console errors, desktop load 584 ms.
+- A live 390×844 Chromium smoke test found no third-party runtime requests, no console/page errors, no horizontal overflow, and a visibly focused keyboard skip link.
 
 ## Known boundaries
 
