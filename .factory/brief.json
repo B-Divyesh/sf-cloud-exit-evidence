@@ -1,0 +1,10 @@
+{
+  "slug": "cloud-exit-evidence",
+  "title": "Cloud Exit Evidence",
+  "territory": "utilities",
+  "user": "People keeping a local fallback for cloud files who need an evidence-backed answer to whether their physical copy is complete enough to rely on.",
+  "smallest_useful_product": "A local CLI that compares a cloud-provider export/listing or sync manifest with an offline destination, classifies coverage by folder/type/date, records excluded paths, and emits an exit-readiness report.",
+  "artifact_class": "cli",
+  "monetization": "free",
+  "constraints": "Read manifests/exports only; no credential storage in v1; distinguish backup from sync prominently; encrypt any saved manifests because paths can be sensitive."
+}
