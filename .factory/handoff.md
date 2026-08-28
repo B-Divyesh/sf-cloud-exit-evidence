@@ -1,38 +1,26 @@
-# Cloud Exit Evidence — polish 2 handoff
-
-Repair commit: `05bb2568ae8ccfae0b988be9977b2ccf01502c3e`.
+# Cloud Exit Evidence — adversarial review 3 handoff
 
 ## Done
 
-- Closed every finding in `.factory/review-1.md` and `.factory/review-2.md`; the precise mapping is in `.factory/polish-2.md`.
-- The `/demo/` report now leads on phones, shows two real missing paths and one real open exclusion in the 390×844 viewport, and remains isolated under `demo:cloud-exit-evidence`.
-- Browser, CLI fixture, example documentation, landing preview, and self-hosted SVG terminal evidence now describe the same sample.
-- Added production-safe same-origin navigation focus, expanded claim inventory/tests, simplified untestable implementation wording, refreshed copy audit/catalog text, and retained the evidence-broadsheet visual system.
-- Deployed `dist/site/` with `/opt/fleet/lib/deploy-static.sh cloud-exit-evidence dist/site`: deployment `9a76f0f0-6f26-4dcb-ac38-6a996addf87d`.
+- Completed a fresh production review at 390 × 844 and 1440 × 1000.
+- Re-ran the landing, demo, privacy, offline, storage-isolation, CLI, history, routing, metadata, link, accessibility, and visual-identity checks from scratch.
+- Wrote `.factory/review-3.md` with a **FAIL** verdict, complete landing/README copy inventory, claim evidence, prior-finding matrix, and 14 concrete findings.
+- Did not modify product code or deploy anything.
 
 ## Verification
 
-- `npm test` — pass: Rust fmt, clippy, unit/integration tests, site unit tests, static response policy, Playwright desktop/mobile route/a11y/privacy/offline tests.
-- `npm run build` — pass; `dist/site/` produced. Initial site JS is 7.39 kB gzip and CSS is 3.61 kB gzip.
-- `npm run test:claims -- --grep @claim:` — pass; all 18 claim entries run their tagged observable test.
-- Fresh clone `/tmp/cloud-exit-evidence-polish2.ovQx5S`: `npm ci`, every individual command from `.factory/claims.json`, `npm test`, `npm run build`, and `cargo package -p cloud-exit-evidence --locked --allow-dirty` all passed.
-- `cargo package -p cloud-exit-evidence --locked --allow-dirty` — ready-to-publish package check.
-- Browser axe checks in `tests/browser/site.spec.ts` report no serious or critical findings for every route.
-- Evidence: `.factory/evidence/demo-first-screen-390.png` (local) and `.factory/evidence/live-polish-2-demo-mobile.png` (cold live site).
-- Live mobile Lighthouse: Performance 100, Accessibility 100, LCP 1.109 s, CLS 0; report at `.factory/evidence/lighthouse-mobile.json`.
-- Cold live recheck passed at `https://cloud-exit-evidence.sociobot.in/`: home/title, one-click demo, `?demo=1`, 390px first-screen report, banner/reset sandbox, forward heading focus under `no-referrer`, legal routes, product 404, and no console errors.
+- Fresh clone: `/tmp/cloud-exit-evidence-review3.GutVIf` at `dcc295b71f311795a0a3360afa3e43002ada98aa`.
+- Ran all 18 commands from `.factory/claims.json` individually: every command passed.
+- `npm test` passed in the clean clone: Rust format/Clippy, 6 unit tests, 3 CLI integration tests, 1 doctest, 4 Vitest tests, response-policy verification, and 49 Playwright tests; the desktop skip for the 390px-only claim was expected.
+- `npm run build` passed in the review tree and produced the release binary plus `dist/site/`.
+- Live demo made only same-origin requests, reloaded offline, preserved a real-data key seeded before entry, reset only `demo:cloud-exit-evidence`, and removed only demo state on exit.
+- The release CLI demo ran from an empty temporary working directory and produced the same two missing paths and open exclusion as the site.
+- The published `cargo install --git ... cloud-exit-evidence` command installed and ran version 0.1.0.
+- Live route crawl, metadata, deep links, Back/Forward focus, response headers, designed 404, reduced motion, and Axe serious/critical checks passed.
 
-## Run and deploy
+## Known gaps / next steps
 
-```sh
-npm ci
-npm test
-npm run build
-npm run test:claims -- --grep @claim:
-cargo package -p cloud-exit-evidence --locked --allow-dirty
-/opt/fleet/lib/deploy-static.sh cloud-exit-evidence dist/site
-```
-
-## Known gaps
-
-None. No AI feature was added because the brief’s local deterministic comparison job does not benefit from one.
+- Verdict remains FAIL. See `.factory/review-3.md` for the authoritative list.
+- Blocking work: add missing claim entries/assertions, add explicit offline and price facts to the first screen, and finish the terminology repair.
+- Other work: restore 44px mobile targets, visually hide the route announcement, disambiguate Copy buttons, and replace two vague/internal README sentences.
+- Re-run every listed claim command from a clean clone and repeat the live phone click path after repair.
