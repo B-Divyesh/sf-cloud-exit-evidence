@@ -42,6 +42,7 @@ function renderReport(report: ReturnType<typeof auditDemo>) {
   const exclusionRows = report.exclusions
     .map((item) => `<li class="finding finding--excluded"><span>open exclusion</span><strong>${escapeHtml(item.path)}</strong><small>${escapeHtml(item.reason)}</small></li>`)
     .join('');
+  empty.querySelector('#report-title')?.removeAttribute('id');
   results.innerHTML = `
     <div class="report-header">
       <p class="report-label">Sample file-copy result</p>

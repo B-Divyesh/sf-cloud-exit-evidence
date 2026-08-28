@@ -45,6 +45,8 @@ for (const route of routeExpectations) {
     await expect(page.locator('link[rel="icon"], link[rel="apple-touch-icon"]')).toHaveCount(2);
     await expect(page.locator('footer a[href="/privacy/"]')).toHaveCount(1);
     await expect(page.locator('footer a[href="/terms/"]')).toHaveCount(1);
+    const ids = await page.locator('[id]').evaluateAll((elements) => elements.map((element) => element.id));
+    expect(new Set(ids).size, `${route.path} has duplicate IDs`).toBe(ids.length);
     const headingLevels = await page.locator('h1, h2, h3, h4, h5, h6').evaluateAll((headings) => headings.map((heading) => Number(heading.tagName.slice(1))));
     expect(headingLevels[0]).toBe(1);
     for (let index = 1; index < headingLevels.length; index += 1) {
