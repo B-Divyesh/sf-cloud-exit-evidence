@@ -1,0 +1,11 @@
+{
+  "provider": "Fixture Cloud",
+  "generated_at": "2026-08-28T00:00:00Z",
+  "files": [
+    { "path": "Documents/present.txt", "size": 4 },
+    { "path": "Documents/missing.txt", "size": 7 }
+  ],
+  "exclusions": [
+    { "path": "Phone/Documents/**", "reason": "mobile OS denied all-files access" }
+  ]
+}

@@ -1,0 +1,34 @@
+[package]
+name = "cloud-exit-evidence"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Audit a cloud manifest against an offline copy and produce exit-readiness evidence"
+license = "MIT"
+repository = "https://github.com/B-Divyesh/sf-cloud-exit-evidence"
+readme = "../../README.md"
+keywords = ["backup", "cloud", "audit", "manifest", "cli"]
+categories = ["command-line-utilities", "filesystem"]
+
+[[bin]]
+name = "cloud-exit-evidence"
+path = "src/main.rs"
+
+[dependencies]
+argon2 = "0.5.3"
+chacha20poly1305 = "0.10.1"
+chrono = { version = "0.4.41", default-features = false, features = ["clock", "serde"] }
+clap = { version = "4.5.45", features = ["derive"] }
+csv = "1.3.1"
+globset = "0.4.16"
+hex = "0.4.3"
+rand = "0.8.5"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.142"
+sha2 = "0.10.9"
+thiserror = "2.0.14"
+walkdir = "2.5.0"
+
+[dev-dependencies]
+filetime = "0.2.26"
+tempfile = "3.20.0"
