@@ -78,7 +78,9 @@ test('@claim:demo-isolation demo entry, reset, and exit preserve real state and 
     .toEqual({ demo: 'sample', real: 'keep' });
   await page.getByRole('link', { name: 'Start for real' }).click();
   await expect(page).toHaveURL(/\/#install$/);
-  await expect(page.getByRole('heading', { name: 'Run the full check offline.' })).toBeVisible();
+  const installHeading = page.getByRole('heading', { name: 'Run the full check offline.' });
+  await expect(installHeading).toBeVisible();
+  await expect.poll(async () => (await installHeading.boundingBox())?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(844);
   expect(await page.evaluate(() => ({ demo: localStorage.getItem('demo:cloud-exit-evidence'), real: localStorage.getItem('real:cloud-exit-evidence') })))
     .toEqual({ demo: null, real: 'keep' });
 });
@@ -243,6 +245,24 @@ test('mobile interactive targets are at least 44 by 44 pixels', async ({ page })
     for (const box of boxes) {
       expect(box.width, `${path}: ${box.name} is too narrow`).toBeGreaterThanOrEqual(44);
       expect(box.height, `${path}: ${box.name} is too short`).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
+test('mobile header links fit without clipping or horizontal scrolling', async ({ page }) => {
+  test.skip(page.viewportSize()?.width !== 390, 'This check measures the required 390 px phone viewport.');
+  for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
+    await page.goto(path);
+    const header = await page.locator('.site-header').evaluate((element) => {
+      const links = [...element.querySelectorAll('a')].map((link) => {
+        const box = link.getBoundingClientRect();
+        return { name: link.textContent?.trim(), left: box.left, right: box.right };
+      });
+      return { links, viewportWidth: window.innerWidth };
+    });
+    for (const link of header.links) {
+      expect(link.left, `${path}: ${link.name} starts outside the viewport`).toBeGreaterThanOrEqual(0);
+      expect(link.right, `${path}: ${link.name} ends outside the viewport`).toBeLessThanOrEqual(header.viewportWidth);
     }
   }
 });

@@ -141,8 +141,8 @@ footer small { color: var(--ink-soft); white-space: nowrap; }
 }
 
 @media (max-width: 700px) {
-  .site-header { margin: 0 20px; grid-template-columns: auto minmax(0, 1fr); gap: 12px; }
-  .site-header nav { justify-content: flex-end; gap: 10px; overflow-x: auto; }
+  .site-header { margin: 0 20px; grid-template-columns: 1fr; gap: 0; padding: 8px 0; }
+  .site-header nav { justify-content: space-between; gap: 8px; overflow: visible; }
   .site-header nav a { flex: 0 0 auto; }
   .folio { display: none; }
   main, footer { width: calc(100% - 40px); }
