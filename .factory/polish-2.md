@@ -1,6 +1,6 @@
 # Polish 2 — cumulative review closure
 
-Repair commit: `05bb256fc3c81f51682ff6bb5775e8445b54f3df`.
+Repair commit: `05bb2568ae8ccfae0b988be9977b2ccf01502c3e`.
 
 | Finding id | Change made | Evidence |
 | --- | --- | --- |
